@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "raceos"
+version = "0.4.1"
+description = "A motorsport engineering platform: historical ingestion, storage, and API"
+requires-python = ">=3.11"
+dependencies = [
+    "fastf1==3.8.3",
+    "truststore>=0.10,<1",
+    "requests>=2.32,<3",
+    "pydantic>=2.7,<3",
+    "fastapi>=0.115,<1",
+    "uvicorn>=0.30,<1",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "httpx>=0.27,<1", "black==25.1.0"]
+
+[project.scripts]
+raceos = "raceos.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

@@ -1,0 +1,32 @@
+name: RaceOS checks
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/playwright
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.11"
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+      - name: Install and build from the checkout
+        run: python run.py --setup-only
+      - name: Backend tests
+        run: .venv/bin/python -m pytest -q --basetemp=data/tmp/pytest-ci
+      - name: Frontend tests
+        run: npm --prefix frontend test
+      - name: Install test browser on the runner
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+      - name: Offline browser smoke test
+        run: npm --prefix frontend run test:smoke
