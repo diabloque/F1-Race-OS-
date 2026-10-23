@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { request } from '../api';
 import { lapTime } from '../data';
 import type { useReplay } from '../hooks/useReplay';
-import { ReplayControls } from './ReplayControls';
 import { Blank } from './Common';
 import { LapComparisonTrack, type DistanceAlignment } from './LapComparisonTrack';
 
@@ -56,7 +55,7 @@ export function PerformanceAnalysis({
   sessionId: string;
   replay: ReturnType<typeof useReplay>;
 }) {
-  const { frame, catalog } = replay;
+  const { frame } = replay;
   const [choices, setChoices] = useState<Choices | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
@@ -221,30 +220,22 @@ export function PerformanceAnalysis({
     </fieldset>
   );
   return (
-    <div className="performance-view">
-      <section className="panel comparison-clock" aria-label="Comparison replay clock">
-        <div className="panel-heading">
-          <div>
-            <h2>Replay clock</h2>
-            <p>Only laps completed by this moment can be compared.</p>
-          </div>
-          <time className="outline-badge" data-testid="replay-utc">
-            {frame
-              ? new Date(frame.at_utc).toISOString().slice(11, 23) + ' UTC'
-              : 'Loading clock...'}
-          </time>
+    <section
+      id="lap-comparison"
+      className="performance-view"
+      aria-labelledby="lap-comparison-heading"
+      tabIndex={-1}
+    >
+      <div className="workspace-section-heading">
+        <div>
+          <span className="tiny-label">COMPLETED LAP ANALYSIS</span>
+          <h2 id="lap-comparison-heading">Lap comparison</h2>
+          <p>Use the replay clock above. Only laps completed by that moment are available.</p>
         </div>
-        <ReplayControls
-          elapsed={replay.elapsed}
-          duration={catalog?.duration_s ?? 0}
-          playing={replay.playing}
-          speed={replay.speed}
-          disabled={!catalog}
-          onSeek={replay.seek}
-          onPlay={replay.togglePlay}
-          onSpeed={replay.setSpeed}
-        />
-      </section>
+        <a className="secondary-button workspace-shortcut" href="#track-replay">
+          Back to replay
+        </a>
+      </div>
       <section className="panel comparison-picker" aria-label="Lap comparison selection">
         <div className="panel-heading">
           <div>
@@ -426,6 +417,6 @@ export function PerformanceAnalysis({
           </Blank>
         </section>
       )}
-    </div>
+    </section>
   );
 }

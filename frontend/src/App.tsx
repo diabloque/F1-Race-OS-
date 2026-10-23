@@ -6,22 +6,20 @@ import { SessionControls } from './components/SessionControls';
 import { ReplayWorkspace } from './components/ReplayWorkspace';
 import { ArchiveQuality } from './components/ArchiveQuality';
 import { PerformanceAnalysis } from './components/PerformanceAnalysis';
-type Screen = 'replay' | 'sessions' | 'quality' | 'analysis';
+type Screen = 'replay' | 'sessions' | 'quality';
 export default function App() {
   const [screen, setScreen] = useState<Screen>('replay');
-  const archive = useArchive(),
-    replay = useReplay(archive.sessionId, archive.revision);
+  const archive = useArchive();
+  const replay = useReplay(archive.sessionId, archive.revision);
   const session = archive.sessions.find((session) => session.id === archive.sessionId);
   const driver = replay.catalog?.drivers.find((driver) => driver.number === replay.driverNumber);
   const currentCar = replay.frame?.drivers.find((driver) => driver.number === replay.driverNumber);
   const title =
     screen === 'replay'
-      ? 'Track replay'
+      ? 'Race workspace'
       : screen === 'sessions'
         ? 'Session library'
-        : screen === 'analysis'
-          ? 'Lap comparison'
-          : 'Data quality';
+        : 'Data quality';
   const error = archive.error || replay.error;
   function chooseSession(id: string) {
     archive.setSessionId(id);
@@ -41,8 +39,7 @@ export default function App() {
         <nav aria-label="Workspace navigation">
           {(
             [
-              ['replay', 'Track replay'],
-              ['analysis', 'Lap comparison'],
+              ['replay', 'Race workspace'],
               ['sessions', 'Session library'],
               ['quality', 'Data quality'],
             ] as const
@@ -51,10 +48,7 @@ export default function App() {
               key={key}
               className={screen === key ? 'nav-item active' : 'nav-item'}
               aria-current={screen === key ? 'page' : undefined}
-              onClick={() => {
-                if (key === 'analysis' && replay.playing) replay.togglePlay();
-                setScreen(key);
-              }}
+              onClick={() => setScreen(key)}
             >
               <Icon name={key === 'replay' ? 'telemetry' : key} />
               {label}
@@ -106,12 +100,10 @@ export default function App() {
               <h1>{title}</h1>
               <p>
                 {screen === 'replay'
-                  ? 'Follow the cars. Read the inputs. Replay every corner.'
+                  ? 'Replay the session and compare completed laps in one place.'
                   : screen === 'sessions'
                     ? 'Your sessions, ready for a closer look.'
-                    : screen === 'analysis'
-                      ? 'Compare completed laps, sector gains, and driver inputs.'
-                      : 'Understand the measurements behind the replay.'}
+                    : 'Understand the measurements behind the replay.'}
               </p>
             </div>
             <button
@@ -180,9 +172,7 @@ export default function App() {
             </div>
           ) : (
             <>
-              {screen === 'analysis' ? (
-                <PerformanceAnalysis sessionId={archive.sessionId} replay={replay} />
-              ) : screen === 'quality' ? (
+              {screen === 'quality' ? (
                 <ArchiveQuality
                   sessionId={archive.sessionId}
                   driverNumber={replay.driverNumber}
@@ -192,11 +182,14 @@ export default function App() {
                   }
                 />
               ) : (
-                <ReplayWorkspace
-                  replay={replay}
-                  location={session?.location}
-                  sessionName={session?.name}
-                />
+                <>
+                  <ReplayWorkspace
+                    replay={replay}
+                    location={session?.location}
+                    sessionName={session?.name}
+                  />
+                  <PerformanceAnalysis sessionId={archive.sessionId} replay={replay} />
+                </>
               )}
             </>
           )}

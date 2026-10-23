@@ -160,9 +160,9 @@ gaps, include invalid throttle readings, or turn unknown brakes into released
 brakes. Each channel reports active seconds, known seconds, coverage of the lap
 window, and active percentage of known time. Full throttle starts at 99%.
 
-`components/PerformanceAnalysis.tsx` renders the comparison selectors, shared
-clock, timing table, and input meters. It refreshes choices when observed lap
-completions change. It also filters existing choices/results against the current
+`components/PerformanceAnalysis.tsx` renders the comparison selectors, timing
+table, and input meters inside the race workspace. It refreshes choices when
+observed lap completions change. It also filters existing choices/results against the current
 clock while requests load, so a backward seek cannot expose future results.
 Compared selections are pinned until changed. The code uses ordinary functions,
 React state/effects, HTTP JSON, and existing bounded lap caching.
@@ -213,3 +213,14 @@ production build passed after the review. The broader explanation is in
 `RACEOS_PROJECT_GUIDE.md` and the accompanying Word document. Necessary concepts
 such as cancellation, locks, binary search, and data validation remain in place
 and are explained rather than weakened.
+
+## Unified race workspace
+
+On 2026-10-23, track replay and lap comparison were combined under one
+`Race workspace` navigation entry. `App.tsx` mounts `ReplayWorkspace` and
+`PerformanceAnalysis` with the same `useReplay` result and session ID. The
+comparison's separate clock panel was removed, so there is one session bar,
+one timeline, and one UTC readout. Section links scroll within the page without
+pausing playback or resetting the session. Existing completion checks still
+hide future comparisons on backward seeks. Session library and Data quality
+remain separate navigation entries. See `UNIFIED_WORKSPACE.md`.

@@ -2220,7 +2220,7 @@ h2 {
   }
 }
 
-/* Compare two completed laps without changing the track replay workspace. */
+/* Completed lap analysis shares the race workspace and replay clock. */
 .performance-view {
   display: grid;
   gap: 20px;
@@ -2232,9 +2232,6 @@ h2 {
 .performance-view .panel-heading {
   flex-wrap: wrap;
   gap: 10px;
-}
-.comparison-clock .replay-controls {
-  border-top: 0;
 }
 .comparison-selections {
   display: grid;
@@ -2493,4 +2490,40 @@ h2 {
     gap: 12px;
     padding: 16px;
   }
+}
+
+/* Links move within the workspace and leave playback and selections in place. */
+#track-replay,
+#lap-comparison {
+  scroll-margin-top: 24px;
+}
+.track-heading-actions,
+.workspace-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.workspace-section-heading {
+  margin-top: 28px;
+}
+.workspace-section-heading h2 {
+  margin: 10px 0 8px;
+  font-size: 22px;
+}
+.workspace-section-heading p {
+  margin: 0;
+  color: #94abc3;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.workspace-shortcut {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.workspace-shortcut:hover {
+  border-color: #91a9c4;
 }

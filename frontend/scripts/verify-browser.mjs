@@ -78,7 +78,7 @@ try {
   page.on('pageerror', (error) => errors.push(error.message));
   const response = await page.goto(base, { waitUntil: 'networkidle' });
   assert.equal(response.status(), 200);
-  await page.getByRole('heading', { name: 'Track replay', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'Race workspace', exact: true }).waitFor();
   await page.getByRole('group', { name: 'Circuit track', exact: true }).waitFor();
   const openSession = async (session) => {
     await page
@@ -560,7 +560,41 @@ try {
   await checkEngineering(raceFrame);
   const analysisTime = raceTime + 600;
   await seek(analysisTime);
-  await page.getByRole('button', { name: 'Lap comparison', exact: true }).click();
+  const navigation = page.getByRole('navigation', { name: 'Workspace navigation' });
+  assert.equal(await navigation.getByRole('button').count(), 3);
+  assert.equal(
+    await navigation.getByRole('button', { name: 'Lap comparison', exact: true }).count(),
+    0,
+  );
+  assert.equal(await page.getByRole('slider', { name: 'Replay timeline', exact: true }).count(), 1);
+  assert.equal(await page.getByTestId('replay-utc').count(), 1);
+  assert.equal(
+    await page.getByRole('region', { name: 'Session selection', exact: true }).count(),
+    1,
+  );
+  assert.equal(await page.getByRole('region', { name: 'Track replay', exact: true }).count(), 1);
+  assert.equal(await page.getByRole('region', { name: 'Lap comparison', exact: true }).count(), 1);
+  await page.getByRole('button', { name: 'Play replay', exact: true }).click();
+  await page.getByRole('link', { name: 'Lap comparison', exact: true }).click();
+  await page.waitForFunction(
+    (before) =>
+      Number(document.querySelector('[data-testid="replay-time"]')?.getAttribute('data-seconds')) >
+      before + 0.2,
+    analysisTime,
+  );
+  assert.equal(await page.getByRole('button', { name: 'Pause replay', exact: true }).count(), 1);
+  assert.equal(
+    await navigation
+      .getByRole('button', { name: 'Race workspace', exact: true })
+      .getAttribute('aria-current'),
+    'page',
+  );
+  await page.getByRole('button', { name: 'Pause replay', exact: true }).click();
+  await seek(analysisTime);
+  checkpoint(
+    'Replay and comparison share one workspace, selection bar, and clock; section links preserve playback',
+  );
+  await page.getByRole('link', { name: 'Lap comparison', exact: true }).click();
   await page.getByRole('heading', { name: 'Lap comparison', exact: true }).waitFor();
   await page.waitForFunction(() =>
     [...(document.querySelector('select[aria-label="Comparison lap A"]')?.options ?? [])].some(
@@ -623,17 +657,22 @@ try {
     'Distance track shows local gains/losses; slider delta matches the API and pointer inspection works',
   );
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.screenshot({ path: path.join(data, 'phase6-comparison-desktop.png'), fullPage: true });
+  await page
+    .locator('.performance-view')
+    .screenshot({ path: path.join(data, 'phase6-comparison-desktop.png') });
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(
     await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
     'Lap comparison overflows on mobile.',
   );
-  await page.screenshot({ path: path.join(data, 'phase6-comparison-mobile.png'), fullPage: true });
+  await page
+    .locator('.performance-view')
+    .screenshot({ path: path.join(data, 'phase6-comparison-mobile.png') });
   await page.setViewportSize({ width: 1600, height: 1120 });
   checkpoint('Lap comparison and the expanded navigation fit desktop and mobile');
   await seek(0);
   assert.equal(await page.getByTestId('comparison-results').count(), 0);
+  assert.equal(await page.getByTestId('completed-laps').locator('.lap-row').count(), 0);
   await page.getByRole('heading', { name: 'No completed timed laps yet', exact: true }).waitFor();
   const rejected = await fetch(
     base +
@@ -662,7 +701,13 @@ try {
     (await page.getByTestId('lap-comparison-summary').textContent()).includes('B: NOR lap 3'),
   );
   checkpoint('The same driver can be compared across two completed laps');
-  await page.getByRole('button', { name: 'Track replay', exact: true }).click();
+  await openSession(second);
+  assert.equal(await page.getByTestId('comparison-results').count(), 0);
+  await page.getByRole('heading', { name: 'Lap comparison', exact: true }).waitFor();
+  await openSession(race);
+  checkpoint(
+    'Changing the shared session clears previous comparison results while keeping both sections together',
+  );
   await seek(raceTime);
   const cache = await get('/api/remote/cache');
   assert.ok(cache.used_bytes <= cache.limit_bytes);
@@ -670,12 +715,14 @@ try {
   checkpoint('Remote telemetry stays within the 200 MB disk cache limit');
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.screenshot({ path: path.join(data, 'remote-replay-dashboard.png'), fullPage: true });
+  await page.screenshot({ path: path.join(data, 'unified-workspace-desktop.png') });
   await page.setViewportSize({ width: 390, height: 844 });
   assert.ok(
     await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
     'Mobile layout overflows horizontally.',
   );
   await page.screenshot({ path: path.join(data, 'remote-replay-mobile.png'), fullPage: true });
+  await page.screenshot({ path: path.join(data, 'unified-workspace-mobile.png') });
   assert.deepEqual(errors, []);
   checkpoint('Desktop and mobile layouts render without overflow or JavaScript errors');
   writeFileSync(

@@ -109,10 +109,16 @@ See [Phase 5 results](docs/PHASE5_RESULTS.md).
 
 ## Lap comparison
 
-Select **Lap comparison** in the sidebar. Advance the shared replay clock until
-laps have finished, choose a driver and completed lap for **A** and **B**, then
-select **Compare laps**. You can compare two drivers or two laps from one driver.
-Entering this view pauses a playing replay; its timeline can still play or seek.
+Open **Race workspace** in the sidebar to use track replay and lap comparison
+together. There is one session selection bar and one replay timeline. The circuit,
+focused driver, timings, and conditions remain above the comparison section.
+Use the track panel's **Lap comparison** link to jump down, or **Back to replay**
+to return. These links preserve playback and the selected session.
+
+Advance the shared replay clock until laps have finished, choose a driver and
+completed lap for **A** and **B**, then select **Compare laps**. Compare two
+drivers or two laps from one driver. The existing timeline controls both parts
+of the workspace; backward seeking hides comparisons for unfinished laps.
 
 The timing table shows recorded lap/sector times and **B minus A** differences.
 A negative difference means B was quicker. Input comparisons show full throttle

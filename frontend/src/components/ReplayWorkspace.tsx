@@ -25,7 +25,12 @@ export function ReplayWorkspace({
     frame?.drivers.filter((car) => car.position && car.position.status !== 'OffTrack').length ?? 0;
   return (
     <>
-      <section className="track-workspace panel">
+      <section
+        id="track-replay"
+        className="track-workspace panel"
+        aria-label="Track replay"
+        tabIndex={-1}
+      >
         <div className="panel-heading">
           <div>
             <h2>
@@ -34,14 +39,19 @@ export function ReplayWorkspace({
             </h2>
             <p>Follow a driver around the circuit. Select another car or use the driver menu.</p>
           </div>
-          <span className="replay-state-badge">
-            <i className={replay.playing ? 'status-dot' : 'status-dot paused-dot'} />
-            {replay.loading && replay.playing
-              ? 'BUFFERING'
-              : replay.playing
-                ? 'REPLAYING'
-                : 'PAUSED'}
-          </span>
+          <div className="track-heading-actions">
+            <span className="replay-state-badge">
+              <i className={replay.playing ? 'status-dot' : 'status-dot paused-dot'} />
+              {replay.loading && replay.playing
+                ? 'BUFFERING'
+                : replay.playing
+                  ? 'REPLAYING'
+                  : 'PAUSED'}
+            </span>
+            <a className="secondary-button workspace-shortcut" href="#lap-comparison">
+              Lap comparison
+            </a>
+          </div>
         </div>
         <div className="track-layout">
           <div className="track-main">

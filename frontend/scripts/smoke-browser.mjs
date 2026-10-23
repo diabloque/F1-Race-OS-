@@ -59,11 +59,15 @@ try {
     (route) => route.fulfill({ json: { year: 2026, items: [] } }),
   );
   assert.equal((await page.goto(base, { waitUntil: 'networkidle' })).status(), 200);
-  await page.getByRole('heading', { name: 'Track replay', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'Race workspace', exact: true }).waitFor();
   await page.getByRole('heading', { name: 'Track data unavailable', exact: true }).waitFor();
   assert.equal(await page.getByRole('alert').count(), 0);
   await page.getByText('Backend connected', { exact: true }).waitFor();
-  await page.getByRole('button', { name: 'Lap comparison', exact: true }).click();
+  assert.equal(await page.getByRole('button', { name: 'Lap comparison', exact: true }).count(), 0);
+  assert.equal(await page.getByRole('slider', { name: 'Replay timeline', exact: true }).count(), 1);
+  await page.getByRole('link', { name: 'Lap comparison', exact: true }).click();
+  await page.getByRole('heading', { name: 'Lap comparison', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'Race workspace', exact: true }).waitFor();
   await page.getByRole('heading', { name: 'Waiting for the replay clock', exact: true }).waitFor();
   assert.ok(await page.getByRole('button', { name: 'Compare laps', exact: true }).isDisabled());
   await page.getByRole('button', { name: 'Session library', exact: true }).click();
@@ -73,7 +77,7 @@ try {
   await page.screenshot({ path: path.join(folder, 'fresh-start-mobile.png'), fullPage: true });
   assert.deepEqual(errors, []);
   console.log(
-    'PASS fresh startup: API, root dashboard, empty library, comparison guards, mobile layout, no JavaScript errors',
+    'PASS fresh startup: API, root dashboard, empty library, unified workspace, comparison guards, mobile layout, no JavaScript errors',
   );
 } finally {
   if (browser) await browser.close();
