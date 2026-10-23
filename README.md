@@ -82,7 +82,8 @@ position is not described as proof that a car is OnTrack.
 
 Throttle shows 0-100 pedal input. Brake shows Applied/Released; pressure is
 unavailable. DRS/Overtake Mode statistics have been removed from the dashboard.
-The data-quality page inspects one selected lap file, not the entire session.
+The dashboard has two screens: Race workspace and Session library. Telemetry
+validation and missing-data handling remain active behind the scenes.
 
 Races include a **Race timing** tower below the circuit. It shows order at the
 latest recorded sector lines, gap to the leader, and interval to the car ahead,

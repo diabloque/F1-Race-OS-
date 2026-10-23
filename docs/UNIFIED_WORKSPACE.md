@@ -5,7 +5,7 @@ comparison in one workspace.
 
 ## Behavior
 
-The sidebar now has Race workspace, Session library, and Data quality. The race
+The sidebar now has Race workspace and Session library. The race
 workspace contains the existing circuit, selected driver panel, completed laps,
 timing, conditions, and lap comparison. The comparison remains below the replay
 panels. A Lap comparison link in the track header and a Back to replay link in
@@ -41,3 +41,8 @@ browser smoke check, and all 26 browser scenarios passed. Browser checks cover
 the shared timeline, navigation during playback, backward seeking, session
 changes, completed-lap comparison, and responsive layouts. Desktop and mobile
 screenshots of the workspace and comparison section were visually inspected.
+
+The follow-up removal of Data quality deletes its screen, report components,
+unused frontend types, and styles. Internal telemetry validation is retained.
+The production build, 10 frontend tests, and browser smoke check passed after
+this removal; the smoke check verifies the two remaining navigation entries.

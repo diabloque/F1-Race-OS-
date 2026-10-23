@@ -67,8 +67,6 @@ The dashboard does not import remote telemetry into those old tables.
 | `components/TrackView.tsx`       | Circuit, selectable cars, trail, color key, label controls     |
 | `components/DriverPanel.tsx`     | One selected driver and unique telemetry readouts              |
 | `components/ReplayControls.tsx`  | Playback controls                                              |
-| `components/ArchiveQuality.tsx`  | Fetch the selected prepared lap's quality                      |
-| `components/QualityReport.tsx`   | Quality table and source/scope explanation                     |
 | `styles.css`                     | Responsive layout and presentation                             |
 
 React effects load records after selection changes. AbortController prevents
@@ -222,5 +220,6 @@ On 2026-10-23, track replay and lap comparison were combined under one
 comparison's separate clock panel was removed, so there is one session bar,
 one timeline, and one UTC readout. Section links scroll within the page without
 pausing playback or resetting the session. Existing completion checks still
-hide future comparisons on backward seeks. Session library and Data quality
-remain separate navigation entries. See `UNIFIED_WORKSPACE.md`.
+hide future comparisons on backward seeks. Session library is the other navigation entry. The user later requested removal
+of the Data quality screen; its components and unused presentation code were
+removed while backend telemetry validation remains active. See `UNIFIED_WORKSPACE.md`.

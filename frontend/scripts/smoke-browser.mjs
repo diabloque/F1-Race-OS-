@@ -63,6 +63,9 @@ try {
   await page.getByRole('heading', { name: 'Track data unavailable', exact: true }).waitFor();
   assert.equal(await page.getByRole('alert').count(), 0);
   await page.getByText('Backend connected', { exact: true }).waitFor();
+  const navigation = page.getByRole('navigation', { name: 'Workspace navigation' });
+  assert.equal(await navigation.getByRole('button').count(), 2);
+  assert.equal(await page.getByText('Data quality', { exact: true }).count(), 0);
   assert.equal(await page.getByRole('button', { name: 'Lap comparison', exact: true }).count(), 0);
   assert.equal(await page.getByRole('slider', { name: 'Replay timeline', exact: true }).count(), 1);
   await page.getByRole('link', { name: 'Lap comparison', exact: true }).click();

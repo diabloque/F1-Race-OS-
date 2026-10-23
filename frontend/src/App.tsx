@@ -4,22 +4,15 @@ import { useReplay } from './hooks/useReplay';
 import { Blank, Icon } from './components/Common';
 import { SessionControls } from './components/SessionControls';
 import { ReplayWorkspace } from './components/ReplayWorkspace';
-import { ArchiveQuality } from './components/ArchiveQuality';
 import { PerformanceAnalysis } from './components/PerformanceAnalysis';
-type Screen = 'replay' | 'sessions' | 'quality';
+type Screen = 'replay' | 'sessions';
 export default function App() {
   const [screen, setScreen] = useState<Screen>('replay');
   const archive = useArchive();
   const replay = useReplay(archive.sessionId, archive.revision);
   const session = archive.sessions.find((session) => session.id === archive.sessionId);
-  const driver = replay.catalog?.drivers.find((driver) => driver.number === replay.driverNumber);
   const currentCar = replay.frame?.drivers.find((driver) => driver.number === replay.driverNumber);
-  const title =
-    screen === 'replay'
-      ? 'Race workspace'
-      : screen === 'sessions'
-        ? 'Session library'
-        : 'Data quality';
+  const title = screen === 'replay' ? 'Race workspace' : 'Session library';
   const error = archive.error || replay.error;
   function chooseSession(id: string) {
     archive.setSessionId(id);
@@ -41,7 +34,6 @@ export default function App() {
             [
               ['replay', 'Race workspace'],
               ['sessions', 'Session library'],
-              ['quality', 'Data quality'],
             ] as const
           ).map(([key, label]) => (
             <button
@@ -101,9 +93,7 @@ export default function App() {
               <p>
                 {screen === 'replay'
                   ? 'Replay the session and compare completed laps in one place.'
-                  : screen === 'sessions'
-                    ? 'Your sessions, ready for a closer look.'
-                    : 'Understand the measurements behind the replay.'}
+                  : 'Your sessions, ready for a closer look.'}
               </p>
             </div>
             <button
@@ -121,7 +111,7 @@ export default function App() {
             catalog={replay.catalog}
             driverNumber={replay.driverNumber}
             currentLap={currentCar?.current_lap_number}
-            showReplayControls={screen === 'replay' || screen === 'quality'}
+            showReplayControls={screen === 'replay'}
             onLoaded={(session) => {
               archive.addSession(session);
               setScreen('replay');
@@ -172,25 +162,12 @@ export default function App() {
             </div>
           ) : (
             <>
-              {screen === 'quality' ? (
-                <ArchiveQuality
-                  sessionId={archive.sessionId}
-                  driverNumber={replay.driverNumber}
-                  driverCode={driver?.code}
-                  lapNumber={
-                    currentCar?.current_lap_number ?? currentCar?.last_lap?.lap_number ?? 1
-                  }
-                />
-              ) : (
-                <>
-                  <ReplayWorkspace
-                    replay={replay}
-                    location={session?.location}
-                    sessionName={session?.name}
-                  />
-                  <PerformanceAnalysis sessionId={archive.sessionId} replay={replay} />
-                </>
-              )}
+              <ReplayWorkspace
+                replay={replay}
+                location={session?.location}
+                sessionName={session?.name}
+              />
+              <PerformanceAnalysis sessionId={archive.sessionId} replay={replay} />
             </>
           )}
           <footer className="page-footer">

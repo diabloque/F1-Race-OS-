@@ -42,13 +42,6 @@ export interface Sample {
   sample_index: number;
   quality_flags: string[];
 }
-export interface Quality {
-  telemetry_samples: number;
-  gaps_over_1s: number;
-  missing_by_channel: Record<string, number>;
-  out_of_range_by_channel: Record<string, number>;
-  warnings: string[];
-}
 export interface Health {
   status: string;
   version: string;

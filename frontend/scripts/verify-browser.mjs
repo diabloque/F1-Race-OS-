@@ -373,8 +373,7 @@ try {
     await page.getByRole('combobox', { name: 'Driver', exact: true }).locator('option').count(),
     20,
   );
-  await page.getByRole('button', { name: 'Data quality', exact: true }).click();
-  await page.getByText(/PREPARED LAP REPORT/).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Data quality', exact: true }).count(), 0);
   await page.getByRole('button', { name: 'Session library', exact: true }).click();
   await page
     .locator('.session-tile')
@@ -391,7 +390,7 @@ try {
     await page.getByRole('combobox', { name: 'Session type', exact: true }).inputValue(),
     'Qualifying',
   );
-  checkpoint('Both full-grid sessions, archive quality, and library navigation work');
+  checkpoint('Both full-grid sessions and library navigation work without a data quality page');
 
   await page.route('**/replay/frame?*', (route) =>
     route.fulfill({
@@ -561,7 +560,7 @@ try {
   const analysisTime = raceTime + 600;
   await seek(analysisTime);
   const navigation = page.getByRole('navigation', { name: 'Workspace navigation' });
-  assert.equal(await navigation.getByRole('button').count(), 3);
+  assert.equal(await navigation.getByRole('button').count(), 2);
   assert.equal(
     await navigation.getByRole('button', { name: 'Lap comparison', exact: true }).count(),
     0,
