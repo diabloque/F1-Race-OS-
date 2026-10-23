@@ -1,12 +1,4 @@
 export type Source = 'fastf1' | 'tracinginsights';
-export interface Page<T> {
-  items: T[];
-  total: number;
-  limit: number;
-  offset: number;
-  next_offset: number | null;
-  source?: Source;
-}
 export interface Session {
   driver_count?: number;
   id: string;

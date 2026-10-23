@@ -4,6 +4,9 @@ from bisect import bisect_right
 from pydantic import AwareDatetime, BaseModel
 from raceos.data import utc_datetime
 
+# Two hundred segments give 201 inspection points around the lap.
+COMPARISON_SEGMENTS = 200
+
 
 class AlignedSample(BaseModel):
     time_s: float
@@ -36,8 +39,11 @@ class DistanceAlignment(BaseModel):
 
 
 def series(samples, lap):
+    """Normalize the recorded lap distance; a new region marks a data gap."""
     start, end = utc_datetime(lap["start_utc"]), utc_datetime(lap["completed_at_utc"])
-    values, region, previous = [], 0, None
+    values = []
+    region = 0
+    previous = None
     for sample in samples:
         when = utc_datetime(sample["timestamp_utc"])
         if not start <= when <= end:
@@ -92,6 +98,7 @@ def sample_state(value):
 
 
 def at_distance(values, progress_values, target):
+    """Find neighboring samples, then interpolate only within one supported region."""
     index = bisect_right(progress_values, target) - 1
     if index < 0:
         return None, None
@@ -108,11 +115,10 @@ def at_distance(values, progress_values, target):
     state["time_s"] += fraction * (right["time"] - left["time"])
     for axis in ("x", "y"):
         other = right["sample"].get(axis)
-        state[axis] = (
-            state[axis] + fraction * (other - state[axis])
-            if state[axis] is not None and other is not None
-            else None
-        )
+        if state[axis] is None or other is None:
+            state[axis] = None
+        else:
+            state[axis] += fraction * (other - state[axis])
     # Inputs are held from the preceding supported sample, never interpolated brake pressure.
     return state, left["region"]
 
@@ -123,13 +129,12 @@ def align_laps(samples_a, samples_b, lap_a, lap_b):
     unavailable = reason_a or reason_b
     if unavailable:
         return {"available": False, "note": unavailable, "points": []}
-    if (
-        sum(
-            row["sample"].get("x") is not None and row["sample"].get("y") is not None
-            for row in a
-        )
-        < 2
-    ):
+    position_count = 0
+    for value in a:
+        sample = value["sample"]
+        if sample.get("x") is not None and sample.get("y") is not None:
+            position_count += 1
+    if position_count < 2:
         return {
             "available": False,
             "note": "Reference lap positions are unavailable.",
@@ -140,22 +145,34 @@ def align_laps(samples_a, samples_b, lap_a, lap_b):
         b[-1]["distance"] - b[0]["distance"],
     )
     progress_a, progress_b = [v["progress"] for v in a], [v["progress"] for v in b]
-    points, previous_regions, previous_delta = [], None, None
-    for step in range(201):
-        progress = step / 200
+    points = []
+    previous_regions = None
+    previous_delta = None
+    for step in range(COMPARISON_SEGMENTS + 1):
+        progress = step / COMPARISON_SEGMENTS
         state_a, region_a = at_distance(a, progress_a, progress)
         state_b, region_b = at_distance(b, progress_b, progress)
-        delta = state_b["time_s"] - state_a["time_s"] if state_a and state_b else None
+        delta = None
+        if state_a and state_b:
+            delta = state_b["time_s"] - state_a["time_s"]
         regions = (region_a, region_b)
-        valid = (
+        valid = False
+        # Compare adjacent points only when neither lap crossed a data gap.
+        if (
             delta is not None
             and previous_delta is not None
             and regions == previous_regions
-            and state_a["x"] is not None
-            and state_a["y"] is not None
-            and points[-1]["a"]["x"] is not None
-            and points[-1]["a"]["y"] is not None
-        )
+        ):
+            previous_a = points[-1]["a"]
+            valid = all(
+                value is not None
+                for value in (
+                    state_a["x"],
+                    state_a["y"],
+                    previous_a["x"],
+                    previous_a["y"],
+                )
+            )
         points.append(
             {
                 "progress": progress,
@@ -174,6 +191,8 @@ def align_laps(samples_a, samples_b, lap_a, lap_b):
         "note": "Aligned by normalized recorded lap distance; gaps are not joined.",
         "distance_a_m": length_a,
         "distance_b_m": length_b,
-        "coverage_pct": round(100 * sum(p["segment_valid"] for p in points) / 200, 3),
+        "coverage_pct": round(
+            100 * sum(p["segment_valid"] for p in points) / COMPARISON_SEGMENTS, 3
+        ),
         "points": points,
     }

@@ -26,8 +26,14 @@ export interface DistanceAlignment {
   coverage_pct: number;
   points: DistancePoint[];
 }
-const signed = (value: number | null) =>
-  value == null ? '\u2014' : `${value > 0 ? '+' : ''}${value.toFixed(3)} s`;
+function signed(value: number | null) {
+  if (value == null) return '\u2014';
+  return `${value > 0 ? '+' : ''}${value.toFixed(3)} s`;
+}
+function brakeLabel(applied: boolean | null | undefined) {
+  if (applied == null) return '\u2014';
+  return applied ? 'applied' : 'released';
+}
 
 export function LapComparisonTrack({
   alignment,
@@ -119,12 +125,15 @@ export function LapComparisonTrack({
               const before = plotted[i - 1],
                 after = plotted[i];
               if (!i || !before || !after || !point.segment_valid) return null;
-              const color =
-                (point.gain_s ?? 0) < -0.01
-                  ? '#66d7b0'
-                  : (point.gain_s ?? 0) > 0.01
-                    ? '#ff776d'
-                    : '#8ba2b8';
+              let color = '#8ba2b8';
+              let change = 'steady';
+              if (point.gain_s != null && point.gain_s < -0.01) {
+                color = '#66d7b0';
+                change = 'gain';
+              } else if (point.gain_s != null && point.gain_s > 0.01) {
+                color = '#ff776d';
+                change = 'loss';
+              }
               return (
                 <line
                   key={i}
@@ -135,7 +144,7 @@ export function LapComparisonTrack({
                   stroke={color}
                   strokeWidth="7"
                   strokeLinecap="round"
-                  data-gain={color === '#66d7b0' ? 'gain' : color === '#ff776d' ? 'loss' : 'steady'}
+                  data-gain={change}
                 />
               );
             })}
@@ -191,12 +200,7 @@ export function LapComparisonTrack({
                 <small>
                   Throttle{' '}
                   {sample?.throttle_pct == null ? '\u2014' : `${Math.round(sample.throttle_pct)}%`}{' '}
-                  &middot; Brake{' '}
-                  {sample?.brake_pressed == null
-                    ? '\u2014'
-                    : sample.brake_pressed
-                      ? 'applied'
-                      : 'released'}
+                  &middot; Brake {brakeLabel(sample?.brake_pressed)}
                 </small>
               </div>
             ))}

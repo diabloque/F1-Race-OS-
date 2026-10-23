@@ -190,3 +190,26 @@ All child processes use project-local dependency caches and temporary folders.
 intercepted empty schedule, so CI smoke checks do not depend on remote F1 data.
 The larger `verify-browser.mjs` remains an optional real-data integration check
 requiring the locally prepared bookmarks and Phase 5 verification fixture.
+
+## Readability review
+
+The 2026-10-22 review simplified the active comparison and engineering code.
+`analysis.py` now validates eligibility with early returns and builds completed
+lap choices with ordinary loops. Its input totals use named `active_s` and
+`known_s` fields rather than positional list entries. `distance_comparison.py`
+names the segment count, explains continuity regions, and expands interpolation
+and segment checks. Tyre age uses explicit steps in `engineering.py`.
+
+The main frontend hooks declare each state separately. Lap comparison selects
+default drivers and laps through explicit conditions, checks both completion
+times, and builds its summary with a named quicker lap. The track overlay uses
+ordinary conditions for its colors and a small brake label helper. The unused
+frontend pagination helper and Page type were removed. Existing tested chart
+utilities and the legacy archive remain available.
+
+These changes retain the API fields, time rules, cache bounds, and UI behavior.
+125 Python tests, 10 frontend tests, 24 real-data browser scenarios, and the
+production build passed after the review. The broader explanation is in
+`RACEOS_PROJECT_GUIDE.md` and the accompanying Word document. Necessary concepts
+such as cancellation, locks, binary search, and data validation remain in place
+and are explained rather than weakened.

@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { request } from '../api';
 import type { Health, Session } from '../types';
 export function useArchive() {
-  const [sessions, setSessions] = useState<Session[]>([]),
-    [sessionId, setSessionId] = useState('');
-  const [health, setHealth] = useState<Health | null>(null),
-    [error, setError] = useState('');
-  const [loading, setLoading] = useState(true),
-    [revision, setRevision] = useState(0);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [sessionId, setSessionId] = useState('');
+  const [health, setHealth] = useState<Health | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [revision, setRevision] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);

@@ -58,13 +58,13 @@ export function PerformanceAnalysis({
 }) {
   const { frame, catalog } = replay;
   const [choices, setChoices] = useState<Choices | null>(null);
-  const [loading, setLoading] = useState(false),
-    [loadError, setLoadError] = useState('');
-  const [a, setA] = useState({ driver: 0, lap: 0 }),
-    [b, setB] = useState({ driver: 0, lap: 0 });
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState('');
+  const [a, setA] = useState({ driver: 0, lap: 0 });
+  const [b, setB] = useState({ driver: 0, lap: 0 });
   const [result, setResult] = useState<{ key: string; data: Comparison } | null>(null);
-  const [error, setError] = useState(''),
-    [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
   const active = useRef<AbortController | null>(null);
   useEffect(() => () => active.current?.abort(), []);
   // Refresh choices when completed laps change, rather than on every playback frame.
@@ -97,42 +97,49 @@ export function PerformanceAnalysis({
     return () => controller.abort();
   }, [sessionId, completedKey]);
 
-  const drivers =
-    choices?.session_id === sessionId && frame
-      ? choices.drivers
-          .map((driver) => ({
-            ...driver,
-            laps: driver.laps.filter(
-              (lap) => Date.parse(lap.completed_at_utc) <= Date.parse(frame.at_utc),
-            ),
-          }))
-          .filter((driver) => driver.laps.length)
-      : [];
-  const driverA =
-    drivers.find((driver) => driver.number === a.driver) ??
-    drivers.find((driver) => driver.number === replay.driverNumber) ??
-    drivers[0];
-  const driverB =
-    drivers.find((driver) => driver.number === b.driver) ??
-    drivers.find((driver) => driver.number !== driverA?.number) ??
-    driverA;
+  // Filter already-loaded choices too, so seeking backward hides future laps immediately.
+  const drivers: DriverChoice[] = [];
+  if (choices?.session_id === sessionId && frame) {
+    for (const driver of choices.drivers) {
+      const laps = driver.laps.filter(
+        (lap) => Date.parse(lap.completed_at_utc) <= Date.parse(frame.at_utc),
+      );
+      if (laps.length > 0) drivers.push({ ...driver, laps });
+    }
+  }
+  let driverA = drivers.find((driver) => driver.number === a.driver);
+  if (!driverA) driverA = drivers.find((driver) => driver.number === replay.driverNumber);
+  if (!driverA) driverA = drivers[0];
+  let driverB = drivers.find((driver) => driver.number === b.driver);
+  if (!driverB) driverB = drivers.find((driver) => driver.number !== driverA?.number);
+  if (!driverB) driverB = driverA;
+
   const lapA = driverA?.laps.find((lap) => lap.lap_number === a.lap) ?? driverA?.laps.at(-1);
-  const lapB =
-    driverB?.laps.find((lap) => lap.lap_number === b.lap) ??
-    (driverA === driverB
-      ? [...(driverB?.laps ?? [])].reverse().find((lap) => lap.lap_number !== lapA?.lap_number)
-      : undefined) ??
-    driverB?.laps.at(-1);
+  let lapB = driverB?.laps.find((lap) => lap.lap_number === b.lap);
+  if (!lapB && driverA === driverB) {
+    // Default to a different lap when comparing one driver against themself.
+    lapB = driverB?.laps
+      .slice()
+      .reverse()
+      .find((lap) => lap.lap_number !== lapA?.lap_number);
+  }
+  if (!lapB) lapB = driverB?.laps.at(-1);
   const key = `${sessionId}:${driverA?.number}:${lapA?.lap_number}:${driverB?.number}:${lapB?.lap_number}`;
-  const shown =
-    result?.key === key &&
-    result.data.session_id === sessionId &&
-    frame &&
-    [result.data.a, result.data.b].every(
-      (lap) => Date.parse(lap.completed_at_utc) <= Date.parse(frame.at_utc),
-    )
-      ? result.data
-      : null;
+  let shown: Comparison | null = null;
+  if (result?.key === key && result.data.session_id === sessionId && frame) {
+    const aFinished = Date.parse(result.data.a.completed_at_utc) <= Date.parse(frame.at_utc);
+    const bFinished = Date.parse(result.data.b.completed_at_utc) <= Date.parse(frame.at_utc);
+    if (aFinished && bFinished) shown = result.data;
+  }
+  let comparisonSummary = '';
+  if (shown) {
+    if (shown.lap_delta_s === 0) {
+      comparisonSummary = 'Same recorded lap time';
+    } else {
+      const quicker = shown.lap_delta_s < 0 ? shown.b : shown.a;
+      comparisonSummary = `${quicker.code} lap ${quicker.lap_number} is ${Math.abs(shown.lap_delta_s).toFixed(3)} s quicker`;
+    }
+  }
 
   async function compare() {
     if (!frame || !driverA || !driverB || !lapA || !lapB) return;
@@ -175,7 +182,9 @@ export function PerformanceAnalysis({
           value={driver?.number ?? ''}
           disabled={!drivers.length || busy}
           onChange={(event) => {
-            (side === 'A' ? setA : setB)({ driver: Number(event.target.value), lap: 0 });
+            const selection = { driver: Number(event.target.value), lap: 0 };
+            if (side === 'A') setA(selection);
+            else setB(selection);
             setError('');
           }}
         >
@@ -194,10 +203,10 @@ export function PerformanceAnalysis({
           value={lap?.lap_number ?? ''}
           disabled={!driver || busy}
           onChange={(event) => {
-            (side === 'A' ? setA : setB)({
-              driver: driver!.number,
-              lap: Number(event.target.value),
-            });
+            if (!driver) return;
+            const selection = { driver: driver.number, lap: Number(event.target.value) };
+            if (side === 'A') setA(selection);
+            else setB(selection);
             setError('');
           }}
         >
@@ -287,11 +296,7 @@ export function PerformanceAnalysis({
               </div>
             </div>
             <div className="comparison-summary" data-testid="lap-comparison-summary">
-              <strong>
-                {shown.lap_delta_s === 0
-                  ? 'Same recorded lap time'
-                  : `${shown.lap_delta_s < 0 ? `${shown.b.code} lap ${shown.b.lap_number}` : `${shown.a.code} lap ${shown.a.lap_number}`} is ${Math.abs(shown.lap_delta_s).toFixed(3)} s quicker`}
-              </strong>
+              <strong>{comparisonSummary}</strong>
               <span>
                 A: {shown.a.code} lap {shown.a.lap_number} &middot; B: {shown.b.code} lap{' '}
                 {shown.b.lap_number}

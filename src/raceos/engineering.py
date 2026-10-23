@@ -6,8 +6,10 @@ from raceos.storage import timestamp
 
 
 def tyre_state(laps, at, begin):
-    clock, beginning = timestamp(at), timestamp(begin)
-    candidates, pit_events = [], set()
+    clock = timestamp(at)
+    beginning = timestamp(begin)
+    candidates = []
+    pit_events = set()
     pit_available = any(lap.get("pit_data_available") for lap in laps)
     for lap in laps:
         for field, kind in (("pit_in_utc", "in"), ("pit_out_utc", "out")):
@@ -20,7 +22,8 @@ def tyre_state(laps, at, begin):
         available = max(start, lap.get("pit_out_utc") or start)
         if available <= clock:
             candidates.append((available, lap["lap_number"], lap))
-    pending, visits = False, 0
+    pending = False
+    visits = 0
     for _, kind in sorted(pit_events):
         if kind == "in":
             pending = True
@@ -43,13 +46,16 @@ def tyre_state(laps, at, begin):
         available, _, lap = current
         life = lap.get("tyre_life_laps")
         completed = lap.get("lap_end_utc") is not None and lap["lap_end_utc"] <= clock
+        # The source reports age at the lap end, so subtract the unfinished lap.
+        age_laps = None
+        if life is not None:
+            age_laps = life if completed else life - 1
+            age_laps = max(0, age_laps)
         state.update(
             compound=lap.get("compound"),
             stint=lap.get("stint"),
             fresh=lap.get("fresh_tyres"),
-            age_laps=(
-                max(0, life - (0 if completed else 1)) if life is not None else None
-            ),
+            age_laps=age_laps,
             observed_at_utc=lap["lap_end_utc"] if completed else available,
         )
     return state

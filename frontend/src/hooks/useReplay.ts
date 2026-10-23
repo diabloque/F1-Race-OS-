@@ -3,16 +3,16 @@ import { request } from '../api';
 import { advanceTime, clampTime } from '../replay';
 import type { ReplayCatalog, ReplayFrame, Track } from '../replay';
 export function useReplay(sessionId: string, revision: number) {
-  const [catalog, setCatalog] = useState<ReplayCatalog | null>(null),
-    [track, setTrack] = useState<Track | null>(null);
-  const [frame, setFrame] = useState<ReplayFrame | null>(null),
-    [driverNumber, setDriverNumber] = useState(0);
-  const [elapsed, setElapsed] = useState(0),
-    [playing, setPlaying] = useState(false),
-    [speed, setSpeed] = useState(1);
-  const [seekRevision, setSeekRevision] = useState(0),
-    [error, setError] = useState(''),
-    [loading, setLoading] = useState(false);
+  const [catalog, setCatalog] = useState<ReplayCatalog | null>(null);
+  const [track, setTrack] = useState<Track | null>(null);
+  const [frame, setFrame] = useState<ReplayFrame | null>(null);
+  const [driverNumber, setDriverNumber] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
+  const [seekRevision, setSeekRevision] = useState(0);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const clock = useRef(0);
   // Load static context, without preloading future telemetry or lap results.
   useEffect(() => {

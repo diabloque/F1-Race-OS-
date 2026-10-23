@@ -5,6 +5,10 @@ The dashboard now loads **TracingInsights prepared data remotely**, one driver
 lap at a time. Races and qualifying are supported; practice sessions are excluded.
 FastF1 ingestion and the existing SQLite archive remain available as reference tools.
 
+For a beginner walkthrough of the finished app, its architecture and the code,
+read the [project guide](docs/RACEOS_PROJECT_GUIDE.md) or open the
+[Word guide](docs/RaceOS%20Project%20Guide.docx).
+
 ## Run
 
 Install **Python 3.11** and **Node.js 24 LTS**, then open a terminal in this folder:

@@ -43,55 +43,63 @@ class LapComparison(BaseModel):
 
 
 def eligible(lap, at):
-    start, finish = lap.get("lap_start_utc"), lap.get("lap_end_utc")
-    return bool(
-        not lap.get("timing_generated")
-        and start
-        and finish
-        and utc_datetime(start) < utc_datetime(finish) <= at
-        and lap.get("lap_duration_s")
-        and lap["lap_duration_s"] > 0
-    )
+    """A comparison may only use a real timed lap that has already finished."""
+    start = lap.get("lap_start_utc")
+    finish = lap.get("lap_end_utc")
+    duration = lap.get("lap_duration_s")
+    if lap.get("timing_generated") or not start or not finish:
+        return False
+    if duration is None or duration <= 0:
+        return False
+    return utc_datetime(start) < utc_datetime(finish) <= at
 
 
 def input_metrics(samples, start, finish):
-    """Hold the left sample to the next, only across supported gaps <= 1 second."""
+    """Count elapsed input time, holding each reading for at most one second."""
     window = (finish - start).total_seconds()
     if window <= 0:
         raise DataError("The selected lap has no positive timing window.")
-    values = [
-        (utc_datetime(row["timestamp_utc"]), row)
-        for row in samples
-        if start <= utc_datetime(row["timestamp_utc"]) <= finish
-    ]
-    totals = {"full_throttle": [0.0, 0.0], "braking": [0.0, 0.0]}
-    for (left, row), (right, _) in zip(values, values[1:]):
-        seconds = (right - left).total_seconds()
+
+    readings = []
+    for sample in samples:
+        when = utc_datetime(sample["timestamp_utc"])
+        if start <= when <= finish:
+            readings.append((when, sample))
+
+    totals = {
+        "full_throttle": {"active_s": 0.0, "known_s": 0.0},
+        "braking": {"active_s": 0.0, "known_s": 0.0},
+    }
+    for (left_time, sample), (right_time, _) in zip(readings, readings[1:]):
+        seconds = (right_time - left_time).total_seconds()
+        # A duplicate has no duration. A large gap has no supported input state.
         if not 0 < seconds <= 1:
             continue
-        throttle, brake = row.get("throttle_pct"), row.get("brake_pressed")
-        states = {
-            "full_throttle": (
-                throttle >= 99
-                if throttle is not None and 0 <= throttle <= 100
-                else None
-            ),
-            "braking": brake if isinstance(brake, bool) else None,
-        }
-        for channel, active in states.items():
-            if active is not None:
-                totals[channel][1] += seconds
-                if active:
-                    totals[channel][0] += seconds
-    return {
-        key: {
+        throttle = sample.get("throttle_pct")
+        brake = sample.get("brake_pressed")
+        full_throttle = None
+        if throttle is not None and 0 <= throttle <= 100:
+            full_throttle = throttle >= 99
+        braking = brake if isinstance(brake, bool) else None
+
+        for channel, active in (("full_throttle", full_throttle), ("braking", braking)):
+            if active is None:
+                continue
+            totals[channel]["known_s"] += seconds
+            if active:
+                totals[channel]["active_s"] += seconds
+
+    result = {}
+    for channel, total in totals.items():
+        active = total["active_s"]
+        known = total["known_s"]
+        result[channel] = {
             "active_s": round(active, 6),
             "known_s": round(known, 6),
             "coverage_pct": round(100 * known / window, 3),
             "percent": round(100 * active / known, 3) if known else None,
         }
-        for key, (active, known) in totals.items()
-    }
+    return result
 
 
 class PerformanceAnalysis:
@@ -111,41 +119,33 @@ class PerformanceAnalysis:
 
     def choices(self, sid, at):
         session, at = self.session_at(sid, at)
-        return {
-            "session_id": sid,
-            "at_utc": timestamp(at),
-            "drivers": [
-                {
-                    **driver,
-                    "laps": [
+        drivers = []
+        for driver in session["drivers"]:
+            completed_laps = []
+            for lap in session["laps"][driver["number"]]:
+                if eligible(lap, at):
+                    completed_laps.append(
                         {
                             "lap_number": lap["lap_number"],
                             "lap_time_s": lap["lap_duration_s"],
                             "completed_at_utc": lap["lap_end_utc"],
                         }
-                        for lap in session["laps"][driver["number"]]
-                        if eligible(lap, at)
-                    ],
-                }
-                for driver in session["drivers"]
-            ],
-        }
+                    )
+            drivers.append({**driver, "laps": completed_laps})
+        return {"session_id": sid, "at_utc": timestamp(at), "drivers": drivers}
 
     def select(self, session, at, number, lap_number):
-        driver = next((d for d in session["drivers"] if d["number"] == number), None)
+        driver = None
+        for candidate in session["drivers"]:
+            if candidate["number"] == number:
+                driver = candidate
+                break
         if driver is None:
             raise NotFound("The selected driver is not in this session.")
-        lap = next(
-            (
-                lap
-                for lap in session["laps"][number]
-                if lap["lap_number"] == lap_number and eligible(lap, at)
-            ),
-            None,
-        )
-        if lap is None:
-            raise DataError("Choose a timed lap completed by the replay clock.")
-        return driver, lap
+        for lap in session["laps"][number]:
+            if lap["lap_number"] == lap_number and eligible(lap, at):
+                return driver, lap
+        raise DataError("Choose a timed lap completed by the replay clock.")
 
     def analyze(self, session, selection):
         driver, lap = selection
