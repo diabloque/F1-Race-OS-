@@ -174,11 +174,96 @@ def test_stale_prepared_values_become_unknown(remote):
     )
 
 
+@pytest.mark.parametrize("padding", [[-0.043], [-0.1, -0.043]])
+def test_pre_lap_padding_is_skipped_without_blocking_open_or_leaking_values(
+    remote, padding
+):
+    provider, replay, _, raw = remote
+    raw["tel"]["time"][: len(padding)] = padding
+    sid = provider.open(2025, 16, "Qualifying", validate=replay.track)["id"]
+    session = provider.get(sid)
+    driver = session["drivers"][0]
+    lap = session["laps"][driver["number"]][0]
+    values = provider.samples(session, driver, lap)
+    first = len(padding)
+    assert len(values) == 60 - first
+    assert values[0]["sample_index"] == first
+    assert utc_datetime(values[0]["timestamp_utc"]) == session["begin"] + timedelta(
+        seconds=raw["tel"]["time"][first]
+    )
+    assert raw["tel"]["time"][:first] == padding
+    start = replay.snapshot(sid, session["begin"], driver["number"])
+    assert start["trail"] == []
+    assert all(car["telemetry"] is None for car in start["drivers"])
+    at = session["begin"] + timedelta(seconds=raw["tel"]["time"][first] + 0.001)
+    frame = replay.snapshot(sid, at, driver["number"])
+    assert frame["drivers"][0]["telemetry"]["sample_index"] == first
+    assert all(utc_datetime(point["timestamp_utc"]) <= at for point in frame["trail"])
+
+
+@pytest.mark.parametrize("invalid", [None, "NaN", "inf", -0.001, 0.01])
+def test_bad_or_reversed_timestamps_still_reject_the_lap(remote, invalid):
+    remote[3]["tel"]["time"][2] = invalid
+    _, replay, sid, session = opened(remote)
+    with pytest.raises(DataError, match="invalid or out of order"):
+        replay.snapshot(sid, session["begin"] + timedelta(seconds=0.5), 4)
+
+
 def test_invalid_prepared_column_lengths_are_rejected(remote):
     remote[3]["tel"]["brake"] = [0]
     provider, replay, sid, session = opened(remote)
     with pytest.raises(DataError, match="unequal column"):
         replay.snapshot(sid, session["begin"], 4)
+
+
+def test_missing_positions_do_not_block_session_inputs_and_clock(remote, tmp_path):
+    provider, _, _, raw = remote
+    raw["tel"]["time"][0] = -0.043
+    raw["tel"]["x"] = ["None"] * 60
+    raw["tel"]["y"] = ["None"] * 60
+    with TestClient(
+        create_app(tmp_path / "no-positions.sqlite3", remote_provider=provider)
+    ) as client:
+        opened = client.post(
+            "/api/remote/open", json={"year": 2025, "round": 16, "session": "Race"}
+        )
+        assert opened.status_code == 200, opened.text
+        prefix = "/api/sessions/" + opened.json()["id"]
+        track = client.get(prefix + "/track")
+        assert track.status_code == 200
+        assert track.json()["points"] == []
+        assert "unavailable" in track.json()["note"]
+        response = client.get(
+            prefix + "/replay/frame",
+            params={"at": "2025-09-06T14:00:00.5Z", "driver_number": 4},
+        )
+        assert response.status_code == 200, response.text
+        frame = ReplayFrame.model_validate(response.json())
+        assert all(
+            car.position is None and car.telemetry.speed_kmh == 150
+            for car in frame.drivers
+        )
+        assert frame.trail == []
+        assert client.get("/api/library").json()["total"] == 1
+
+
+def test_track_search_can_use_another_driver_when_preferred_has_no_positions(remote):
+    provider, replay, _, _ = remote
+    original = provider.samples
+
+    def samples(session, driver, lap):
+        rows = original(session, driver, lap)
+        return (
+            [{**row, "x": None, "y": None} for row in rows]
+            if driver["code"] == "NOR"
+            else rows
+        )
+
+    provider.samples = samples
+    sid = provider.open(2025, 16, "Race", validate=replay.track)["id"]
+    track = replay.track(sid)
+    assert track["reference_driver_number"] == 1
+    assert len(track["points"]) == 60
 
 
 def test_static_outline_preserves_source_geometry_and_quality_is_one_lap(remote):

@@ -69,11 +69,21 @@ class RemoteReplay:
         candidates.sort(
             key=lambda item: (item[0]["number"] != preferred, item[1]["lap_duration_s"])
         )
-        for driver, lap in candidates[:6]:
+        # Try different drivers before retrying more laps from the same car.
+        first_laps, other_laps, seen = [], [], set()
+        for driver, lap in candidates:
+            if driver["number"] in seen:
+                other_laps.append((driver, lap))
+            else:
+                first_laps.append((driver, lap))
+                seen.add(driver["number"])
+        has_samples = False
+        for driver, lap in (first_laps + other_laps)[:6]:
             try:
                 samples = self.provider.samples(session, driver, lap)
             except RemoteMissing:
                 continue
+            has_samples = has_samples or bool(samples)
             points = [
                 {"x": s["x"], "y": s["y"]}
                 for s in samples
@@ -102,9 +112,18 @@ class RemoteReplay:
                     "prepared": True,
                 }
                 return session["track"]
-        raise NotFound(
-            "A complete prepared lap could not be found for this circuit outline."
-        )
+        if has_samples:
+            # Missing positions must not block otherwise usable inputs and timing.
+            session["track"] = {
+                "session_id": sid,
+                "source": SOURCE,
+                "approximate": True,
+                "points": [],
+                "prepared": True,
+                "note": "A complete circuit outline is unavailable in this session's prepared data. Driver inputs and timing can still be replayed.",
+            }
+            return session["track"]
+        raise NotFound("No prepared telemetry could be found to open this session.")
 
     def snapshot(self, sid, at, driver_number=None):
         session = self.provider.get(sid)

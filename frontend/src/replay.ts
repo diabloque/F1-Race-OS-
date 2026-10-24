@@ -56,6 +56,7 @@ export interface Track {
   session_id: string;
   points: Point[];
   approximate: boolean;
+  note?: string;
 }
 export interface TrailPoint extends Point {
   timestamp_utc: string;

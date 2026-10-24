@@ -75,9 +75,11 @@ The separate completed-lap comparison interpolates time and position along dista
 Every returned replay sample is at or before the replay clock; samples over one second old stay unknown.
 Original live delivery delays are unavailable.
 
-A static circuit outline comes from a complete prepared reference lap. Lap results
-and best times appear after completion and disappear appropriately on backward
-seeks. Car status flags absent from the prepared source remain unknown; a valid
+A static circuit outline comes from a complete prepared reference lap. If no
+complete outline is available, the map explains this while available driver
+inputs and timing still replay. Samples before a lap starts are excluded without
+rejecting the remaining lap. Lap results and best times appear after completion
+and disappear appropriately on backward seeks. Car status flags absent from the prepared source remain unknown; a valid
 position is not described as proof that a car is OnTrack.
 
 Throttle shows 0-100 pedal input. Brake shows Applied/Released; pressure is

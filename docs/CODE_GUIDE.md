@@ -223,3 +223,24 @@ pausing playback or resetting the session. Existing completion checks still
 hide future comparisons on backward seeks. Session library is the other navigation entry. The user later requested removal
 of the Data quality screen; its components and unused presentation code were
 removed while backend telemetry validation remains active. See `UNIFIED_WORKSPACE.md`.
+
+## Prepared lap boundaries and unavailable positions
+
+Some prepared lap files include a sample just before their lap begins. For
+example, the 2026 Monaco race's NOR lap 34 begins at -0.043 seconds. The loader
+checks chronological order first, then excludes negative lap-relative times.
+It preserves the timestamps and row indices of retained samples; it does not
+move earlier samples to zero. Missing, non-finite, and reversed timestamps still
+raise a data error.
+
+Circuit selection tries different drivers within the existing six-file limit.
+If usable telemetry exists but no complete outline can be built, the track
+response contains an empty points list and an explanatory note. The dashboard
+clears the old circuit and displays that note, while the shared replay clock,
+driver inputs, timing, and completed-lap analysis can still work with the data
+available. It does not invent car positions or borrow another event's map.
+
+Validation: 134 backend tests, 10 frontend tests, the production build, and the
+isolated browser smoke check passed. The affected real Monaco session opens
+successfully and returns replay frames without exposing future samples. Live
+browser results and screenshots are under `data/` on E:.

@@ -412,11 +412,15 @@ class TracingInsights:
         }
         for i, raw in enumerate(tel["time"]):
             seconds = number(raw)
-            if seconds is None or seconds < 0 or seconds < previous:
+            if seconds is None or seconds < previous:
                 raise DataError(
                     "The prepared telemetry timestamps are invalid or out of order."
                 )
             previous = seconds
+            # Prepared files can include padding just before the lap starts.
+            # Skip it instead of rejecting the lap or moving it to time zero.
+            if seconds < 0:
+                continue
             row = {
                 name: (
                     number(tel[field][i]) if isinstance(tel.get(field), list) else None

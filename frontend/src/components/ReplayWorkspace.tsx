@@ -47,7 +47,7 @@ export function ReplayWorkspace({
         </div>
         <div className="track-layout">
           <div className="track-main">
-            {track ? (
+            {track?.points.length ? (
               <TrackView
                 track={track}
                 cars={frame?.drivers ?? []}
@@ -56,16 +56,35 @@ export function ReplayWorkspace({
                 onFocus={replay.chooseDriver}
               />
             ) : (
-              <Blank title={replay.loading ? 'Loading the circuit...' : 'Track data unavailable'}>
-                Open a race or qualifying session to load its prepared track positions.
+              <Blank
+                title={
+                  track
+                    ? 'Track view unavailable'
+                    : replay.loading
+                      ? 'Loading the circuit...'
+                      : 'Track data unavailable'
+                }
+              >
+                {track?.note ??
+                  'Open a race or qualifying session to load its prepared track positions.'}
               </Blank>
             )}
             <div className="map-caption">
               <span>
-                <i className="status-dot" />
-                {onTrack} cars located
+                {track?.points.length ? (
+                  <>
+                    <i className="status-dot" />
+                    {onTrack} cars located
+                  </>
+                ) : (
+                  'No circuit outline'
+                )}
               </span>
-              <span>Recorded positions - approximate</span>
+              <span>
+                {track?.points.length
+                  ? 'Recorded positions - approximate'
+                  : 'Driver inputs and timing available'}
+              </span>
               <time data-testid="replay-utc">
                 {frame
                   ? new Date(frame.at_utc).toISOString().slice(11, 23) + ' UTC'
