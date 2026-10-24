@@ -8,11 +8,9 @@ import { RaceTiming } from './RaceTiming';
 import { SessionConditions } from './SessionConditions';
 export function ReplayWorkspace({
   replay,
-  location,
   sessionName,
 }: {
   replay: ReturnType<typeof useReplay>;
-  location?: string;
   sessionName?: string;
 }) {
   const { catalog, frame, driverNumber, track } = replay;
@@ -32,13 +30,7 @@ export function ReplayWorkspace({
         tabIndex={-1}
       >
         <div className="panel-heading">
-          <div>
-            <h2>
-              {location ?? 'Circuit'} track replay{' '}
-              <span className="small-tag">{driver?.code ?? '--'}</span>
-            </h2>
-            <p>Follow a driver around the circuit. Select another car or use the driver menu.</p>
-          </div>
+          <h2>Track View</h2>
           <div className="track-heading-actions">
             <span className="replay-state-badge">
               <i className={replay.playing ? 'status-dot' : 'status-dot paused-dot'} />

@@ -162,11 +162,7 @@ export default function App() {
             </div>
           ) : (
             <>
-              <ReplayWorkspace
-                replay={replay}
-                location={session?.location}
-                sessionName={session?.name}
-              />
+              <ReplayWorkspace replay={replay} sessionName={session?.name} />
               <PerformanceAnalysis sessionId={archive.sessionId} replay={replay} />
             </>
           )}
