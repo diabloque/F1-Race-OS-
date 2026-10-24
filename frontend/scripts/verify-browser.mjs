@@ -79,7 +79,6 @@ try {
   const response = await page.goto(base, { waitUntil: 'networkidle' });
   assert.equal(response.status(), 200);
   await page.getByRole('heading', { name: 'Race workspace', exact: true }).waitFor();
-  await page.getByRole('group', { name: 'Circuit track', exact: true }).waitFor();
   const openSession = async (session) => {
     await page
       .getByRole('combobox', { name: 'Year', exact: true })
@@ -416,6 +415,42 @@ try {
   assert.equal(raceMetadata.drivers.length, 20);
   assert.equal(raceMetadata.source, 'tracinginsights');
   await openSession(race);
+  await seek(0);
+  const gridFrame = await get(
+    racePrefix + `/replay/frame?at=${encodeURIComponent(raceMetadata.start_utc)}&driver_number=4`,
+  );
+  assert.equal(gridFrame.race_timing.basis, 'starting_grid');
+  assert.equal(gridFrame.race_timing.grid_status, 'ready');
+  assert.equal(gridFrame.race_timing.rows[0].code, 'LEC');
+  assert.ok(
+    gridFrame.race_timing.rows.every(
+      (row) => row.gap_to_leader_s == null && row.interval_s == null,
+    ),
+  );
+  await page.getByTestId('timing-phase').filter({ hasText: 'Starting grid -' }).waitFor();
+  const initialRows = await page
+    .getByTestId('race-timing')
+    .locator('tbody tr')
+    .evaluateAll((nodes) =>
+      nodes.map((node) => ({
+        number: Number(node.dataset.driver),
+        position: node.dataset.position ? Number(node.dataset.position) : null,
+      })),
+    );
+  assert.deepEqual(
+    initialRows,
+    gridFrame.race_timing.rows.map((row) => ({ number: row.number, position: row.position })),
+  );
+  assert.equal(
+    await page.getByTestId('race-timing').getByText('Leader', { exact: true }).count(),
+    0,
+  );
+  await page
+    .getByRole('region', { name: 'Race timing', exact: true })
+    .screenshot({ path: path.join(data, 'starting-grid-desktop.png') });
+  checkpoint(
+    'Starting grid appears immediately in grid order with blank gaps and no premature Leader label',
+  );
   const raceTime =
     (Date.parse(raceMetadata.initial_utc) - Date.parse(raceMetadata.start_utc)) / 1000 + 150;
   await seek(raceTime);

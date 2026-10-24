@@ -76,6 +76,37 @@ def remote(tmp_path):
         calls.append(url)
         if "schedule_" in url:
             return deepcopy(schedule)
+        if "api.jolpi.ca" in url:
+            return {
+                "MRData": {
+                    "RaceTable": {
+                        "Races": [
+                            {
+                                "season": "2025",
+                                "round": "16",
+                                "date": "2025-09-07",
+                                "Results": [
+                                    {
+                                        "number": "4",
+                                        "grid": "2",
+                                        "position": "1",
+                                        "Driver": {
+                                            "code": "NOR",
+                                            "permanentNumber": "99",
+                                        },
+                                    },
+                                    {
+                                        "number": "1",
+                                        "grid": "1",
+                                        "position": "2",
+                                        "Driver": {"code": "VER"},
+                                    },
+                                ],
+                            }
+                        ]
+                    }
+                }
+            }
         if url.endswith("drivers.json"):
             return deepcopy(drivers)
         if url.endswith("laptimes.json"):
@@ -468,3 +499,97 @@ def test_optional_context_failures_do_not_stop_replay(remote):
     assert frame.weather is None and frame.weather_status == "missing"
     assert frame.race_control == [] and frame.race_control_status == "unavailable"
     assert frame.drivers[0].telemetry.speed_kmh == 150
+
+
+def test_grid_uses_starting_positions_and_never_finishing_results(remote):
+    provider, replay, calls, _ = remote
+    sid = provider.open(2025, 16, "Race")["id"]
+    session = provider.get(sid)
+    assert session["starting_grid"] == {4: 2, 1: 1}
+    frame = ReplayFrame.model_validate(replay.snapshot(sid, session["begin"], 4))
+    assert frame.race_timing.basis == "starting_grid"
+    assert frame.race_timing.grid_status == "ready"
+    assert [(row.number, row.position) for row in frame.race_timing.rows] == [
+        (1, 1),
+        (4, 2),
+    ]
+    assert all(
+        row.interval_s is None
+        and row.gap_to_leader_s is None
+        and row.timing_at_utc is None
+        for row in frame.race_timing.rows
+    )
+    assert sum("api.jolpi.ca" in url for url in calls) == 1
+    replay.snapshot(sid, session["begin"] + timedelta(seconds=0.5), 4)
+    assert sum("api.jolpi.ca" in url for url in calls) == 1
+
+
+@pytest.mark.parametrize("failure", [RemoteMissing, RemoteUnavailable])
+def test_optional_grid_outage_does_not_block_race_playback(remote, failure):
+    provider, replay, _, _ = remote
+    original = provider.cache.fetch
+
+    def fetch(url):
+        if "api.jolpi.ca" in url:
+            raise failure("Grid not available")
+        return original(url)
+
+    provider.cache.fetch = fetch
+    sid = provider.open(2025, 16, "Race", validate=replay.track)["id"]
+    session = provider.get(sid)
+    frame = ReplayFrame.model_validate(
+        replay.snapshot(sid, session["begin"] + timedelta(seconds=0.5), 4)
+    )
+    assert frame.race_timing.basis == "starting_grid"
+    assert frame.race_timing.grid_status in ("missing", "unavailable")
+    assert all(row.position is None for row in frame.race_timing.rows)
+    assert frame.drivers[0].telemetry.speed_kmh == 150
+
+
+@pytest.mark.parametrize(
+    "field,value", [("season", "2024"), ("round", "15"), ("date", "2025-09-06")]
+)
+def test_grid_for_a_different_race_is_rejected(remote, field, value):
+    provider, _, _, _ = remote
+    original = provider.cache.fetch
+
+    def fetch(url):
+        data = original(url)
+        if "api.jolpi.ca" in url:
+            data["MRData"]["RaceTable"]["Races"][0][field] = value
+        return data
+
+    provider.cache.fetch = fetch
+    sid = provider.open(2025, 16, "Race")["id"]
+    session = provider.get(sid)
+    assert session["starting_grid"] == {} and session["grid_status"] == "invalid"
+
+
+def test_qualifying_does_not_download_starting_grid(remote):
+    provider, _, calls, _ = remote
+    provider.open(2025, 16, "Qualifying")
+    assert not any("api.jolpi.ca" in url for url in calls)
+
+
+def test_grid_rejects_duplicate_slots_and_keeps_unknown_drivers_unranked(remote):
+    provider, _, _, _ = remote
+    original = provider.cache.fetch
+
+    def fetch(url):
+        data = original(url)
+        if "api.jolpi.ca" in url:
+            data["MRData"]["RaceTable"]["Races"][0]["Results"][1]["grid"] = "2"
+        return data
+
+    provider.cache.fetch = fetch
+    sid = provider.open(2025, 16, "Race")["id"]
+    assert provider.get(sid)["starting_grid"] == {}
+    assert provider.get(sid)["grid_status"] == "invalid"
+
+
+def test_race_initial_clock_starts_at_session_begin_not_a_late_driver_start(remote):
+    provider, replay, _, _ = remote
+    sid = provider.open(2025, 16, "Race")["id"]
+    session = provider.get(sid)
+    session["laps"][4][0]["lap_start_utc"] = "2025-09-06T14:00:01Z"
+    assert replay.catalog(sid)["initial_utc"] == "2025-09-06T14:00:00.000000Z"

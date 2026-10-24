@@ -106,3 +106,49 @@ def test_missing_and_out_of_order_sector_times_are_not_invented(session):
 def test_qualifying_does_not_show_race_standings(session):
     session["name"] = "Qualifying"
     assert race_timing(session, ORIGIN) is None
+
+
+def test_grid_order_is_immediate_with_blank_gaps_and_no_fake_leader(session):
+    session["starting_grid"] = {1: 3, 4: 1, 63: 2}
+    timing = race_timing(session, ORIGIN)
+    assert timing["basis"] == "starting_grid"
+    assert [row["number"] for row in timing["rows"]] == [4, 63, 1]
+    assert [row["position"] for row in timing["rows"]] == [1, 2, 3]
+    assert all(
+        row["interval_s"] is None
+        and row["gap_to_leader_s"] is None
+        and row["timing_at_utc"] is None
+        for row in timing["rows"]
+    )
+
+
+def test_first_sector_switches_from_grid_before_lap_one_finishes(session):
+    session["starting_grid"] = {1: 3, 4: 1, 63: 2}
+    timing = race_timing(session, ORIGIN + timedelta(seconds=10))
+    assert timing["basis"] == "sector_crossings"
+    assert timing["rows"][0]["number"] == 1 and timing["rows"][0]["position"] == 1
+    assert timing["rows"][0]["lap_number"] == 1 and timing["rows"][0]["sector"] == 1
+    assert all(
+        row["position"] is None and row["timing_at_utc"] is None
+        for row in timing["rows"][1:]
+    )
+    after = rows(session, 15)
+    assert [row["gap_to_leader_s"] for row in after] == [0, 2, 4]
+    assert [row["gap_to_leader_s"] for row in rows(session, 25)] == [0, 2, 5]
+
+
+def test_grid_handles_unassigned_slots_and_missing_drivers_without_guessing(session):
+    session["starting_grid"] = {1: 3, 4: 0}
+    timing = race_timing(session, ORIGIN)
+    positions = {row["number"]: row["position"] for row in timing["rows"]}
+    assert positions == {1: 3, 4: None, 63: None}
+    assert (
+        next(row for row in timing["rows"] if row["number"] == 4)["grid_position"] == 0
+    )
+
+
+def test_rewinding_restores_grid_and_removes_future_gaps(session):
+    session["starting_grid"] = {1: 3, 4: 1, 63: 2}
+    before = race_timing(session, ORIGIN)
+    race_timing(session, ORIGIN + timedelta(seconds=66))
+    assert race_timing(session, ORIGIN) == before

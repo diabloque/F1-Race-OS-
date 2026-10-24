@@ -13,7 +13,18 @@ export function RaceTiming({
   onFocus: (number: number) => void;
 }) {
   const seconds = (value: number | null) => (value == null ? '\u2014' : `+${value.toFixed(3)}`);
-  const started = timing?.rows.some((row) => row.position != null);
+  const started = timing?.basis === 'sector_crossings';
+  const hasGrid = timing?.rows.some((row) => row.grid_position != null);
+  function observation(row: Timing['rows'][number]) {
+    if (row.timing_at_utc) return `L${row.lap_number} \u00b7 S${row.sector}`;
+    const label =
+      row.grid_position === 0
+        ? 'No grid slot'
+        : row.grid_position
+          ? `Grid P${row.grid_position}`
+          : 'Grid unavailable';
+    return started ? `${label} \u00b7 awaiting timing` : label;
+  }
   return (
     <section className="race-timing panel" aria-label="Race timing">
       <div className="panel-heading">
@@ -25,7 +36,13 @@ export function RaceTiming({
           LAP {lap ?? '\u2014'}
         </span>
       </div>
-      {!started && <p className="timing-wait">Waiting for the first recorded timing line.</p>}
+      <p className="timing-wait" data-testid="timing-phase" data-basis={timing?.basis}>
+        {started
+          ? 'Recorded race order - updates at sector timing lines.'
+          : hasGrid
+            ? 'Starting grid - waiting for the first recorded timing line.'
+            : 'Starting grid unavailable - waiting for recorded timing.'}
+      </p>
       <div className="race-timing-scroll">
         <table className="race-timing-table" data-testid="race-timing">
           <thead>
@@ -57,14 +74,10 @@ export function RaceTiming({
                     style={{ borderLeftColor: driverColor(row) }}
                   >
                     <strong>{row.code}</strong>
-                    <small>
-                      {row.lap_number == null
-                        ? 'No timing yet'
-                        : `L${row.lap_number} \u00b7 S${row.sector}`}
-                    </small>
+                    <small>{observation(row)}</small>
                   </button>
                 </td>
-                <td>{row.position === 1 ? 'Leader' : seconds(row.interval_s)}</td>
+                <td>{started && row.position === 1 ? 'Leader' : seconds(row.interval_s)}</td>
                 <td>{row.position === 1 ? '\u2014' : seconds(row.gap_to_leader_s)}</td>
               </tr>
             ))}
@@ -72,8 +85,9 @@ export function RaceTiming({
         </table>
       </div>
       <p className="timing-explanation">
-        Order updates at recorded sector lines. Interval is to the car ahead; Gap is to the leader,
-        in seconds at the same line. &mdash; means no recorded comparison.
+        Starting grid is shown until the first recorded sector crossing. Interval is to the car
+        ahead; Gap is to the leader, in seconds at the same line. Updates follow available sector
+        times; &mdash; means no recorded comparison.
       </p>
     </section>
   );

@@ -66,6 +66,7 @@ export interface TrailPoint extends Point {
 export interface RaceTimingRow extends Pick<Driver, 'number' | 'code' | 'name' | 'team'> {
   team_color?: string | null;
   position: number | null;
+  grid_position?: number | null;
   lap_number: number | null;
   sector: number | null;
   timing_at_utc: string | null;
@@ -73,7 +74,8 @@ export interface RaceTimingRow extends Pick<Driver, 'number' | 'code' | 'name' |
   interval_s: number | null;
 }
 export interface RaceTiming {
-  basis: 'sector_crossings';
+  basis: 'starting_grid' | 'sector_crossings';
+  grid_status?: Availability;
   rows: RaceTimingRow[];
 }
 export interface WeatherObservation {

@@ -92,7 +92,11 @@ latest recorded sector lines, gap to the leader, and interval to the car ahead,
 in seconds. Click a driver in the tower to follow that car. Gaps compare the
 same lap and sector for both cars; they are not continuously measured live gaps.
 Missing comparisons stay unknown, and backward seeks restore earlier timings.
-Before the first recorded timing line, positions and intervals remain blank.
+Before the first recorded timing line, the tower shows the starting grid from
+small cached Jolpica metadata, with blank intervals and gaps. Grid labels give
+way to recorded lap/sector observations as timing arrives. Missing grid entries
+remain unknown; a grid outage does not block replay. Rewinding to the start
+restores the grid and clears race gaps.
 Qualifying does not show race standings. See [timing details](docs/RACE_TIMING.md).
 
 ## Engineering view

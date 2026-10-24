@@ -51,6 +51,7 @@ class TrailPoint(BaseModel):
 
 class RaceTimingRow(DriverRecord):
     position: int | None
+    grid_position: int | None = None
     lap_number: int | None
     sector: int | None
     timing_at_utc: AwareDatetime | None
@@ -59,7 +60,8 @@ class RaceTimingRow(DriverRecord):
 
 
 class RaceTiming(BaseModel):
-    basis: Literal["sector_crossings"]
+    basis: Literal["starting_grid", "sector_crossings"]
+    grid_status: Literal["ready", "missing", "unavailable", "invalid"] = "missing"
     rows: list[RaceTimingRow]
 
 

@@ -9,6 +9,7 @@ def race_timing(session, at):
         return None
     clock = timestamp(at)
     observations = {}
+    grid = session.get("starting_grid", {})
     for driver in session["drivers"]:
         points = {}
         for lap in session["laps"][driver["number"]]:
@@ -32,11 +33,18 @@ def race_timing(session, at):
         progress = max(points, default=0)
         return progress, points.get(progress)
 
+    started = any(observations.values())
+
+    def grid_order(driver):
+        position = grid.get(driver["number"])
+        return position if position else 1000
+
     ordered = sorted(
         session["drivers"],
         key=lambda driver: (
             -latest(driver)[0],
             latest(driver)[1] or clock,
+            grid_order(driver),
             driver["number"],
         ),
     )
@@ -56,11 +64,17 @@ def race_timing(session, at):
             ).total_seconds()
             return round(seconds, 3) if seconds >= 0 else None
 
+        position = None
+        if progress:
+            position = index + 1
+        elif not started:
+            position = grid.get(driver["number"]) or None
         # All comparisons use the same lap/sector for both drivers. No distance/speed estimate.
         rows.append(
             {
                 **driver,
-                "position": index + 1 if progress else None,
+                "position": position,
+                "grid_position": grid.get(driver["number"]),
                 "lap_number": (progress - 1) // 3 + 1 if progress else None,
                 "sector": (progress - 1) % 3 + 1 if progress else None,
                 "timing_at_utc": crossing,
@@ -68,4 +82,8 @@ def race_timing(session, at):
                 "interval_s": gap(ordered[index - 1]) if index else None,
             }
         )
-    return {"basis": "sector_crossings", "rows": rows}
+    return {
+        "basis": "sector_crossings" if started else "starting_grid",
+        "grid_status": session.get("grid_status", "ready" if grid else "missing"),
+        "rows": rows,
+    }

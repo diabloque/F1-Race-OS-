@@ -116,8 +116,14 @@ Strategy models remain future work.
 
 ## Race timing tower
 
-`race_timing.py` orders cars using only sector crossings at or before the replay
-clock. It compares the same lap and sector to calculate each gap. Generated
+Before any observed crossing, `race_timing.py` displays the starting grid.
+`TracingInsights.starting_grid` reads Jolpica's small race metadata response through
+the same bounded cache. It checks year, round, date, car number, and driver code,
+and reads only the grid field rather than finishing positions. Optional grid
+failures leave positions unknown without blocking replay. The API's `basis`
+switches from `starting_grid` to `sector_crossings` at the first observed line.
+Afterward, `race_timing.py` orders cars using only sector crossings at or before
+the replay clock. It compares the same lap and sector to calculate each gap. Generated
 retirement laps do not count as real timing observations. Missing comparisons
 stay null, and every seek rebuilds the standings without mutable history.
 `RemoteReplay.snapshot` includes the result as `race_timing`; qualifying returns

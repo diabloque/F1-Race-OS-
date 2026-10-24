@@ -331,11 +331,62 @@ class TracingInsights:
             "begin": min(starts),
             "end": max(ends),
         }
+        if kind == "Race":
+            session.update(self.starting_grid(session))
         with self.lock:
             self.sessions[sid] = session
             while len(self.sessions) > 4:
                 self.sessions.popitem(last=False)
         return session
+
+    def starting_grid(self, session):
+        """Read only pre-race grid fields; never use finishing positions."""
+        year, round_number = session["year"], session["round"]
+        try:
+            data = self.cache.get(
+                f"grid:{year}:{round_number}",
+                [
+                    f"https://api.jolpi.ca/ergast/f1/{year}/{round_number}/results.json?limit=100"
+                ],
+            )
+            races = data["MRData"]["RaceTable"]["Races"]
+            if not races:
+                return {"starting_grid": {}, "grid_status": "missing"}
+            race = races[0]
+            if (
+                len(races) != 1
+                or str(race["season"]) != str(year)
+                or str(race["round"]) != str(round_number)
+                or race["date"] != session["scheduled_start_utc"][:10]
+            ):
+                raise DataError("Starting grid does not match the selected race.")
+            known = {driver["number"]: driver["code"] for driver in session["drivers"]}
+            grid, used_positions = {}, set()
+            for row in race["Results"]:
+                number = positive_integer(row.get("number"))
+                position = positive_integer(row.get("grid"), allow_zero=True)
+                if (
+                    number not in known
+                    or position is None
+                    or position > 99
+                    or row.get("Driver", {}).get("code") != known[number]
+                ):
+                    continue
+                if number in grid or (position > 0 and position in used_positions):
+                    raise DataError("Starting grid contains duplicate entries.")
+                grid[number] = position
+                if position > 0:
+                    used_positions.add(position)
+            return {
+                "starting_grid": grid,
+                "grid_status": "ready" if grid else "missing",
+            }
+        except RemoteMissing:
+            return {"starting_grid": {}, "grid_status": "missing"}
+        except RemoteUnavailable:
+            return {"starting_grid": {}, "grid_status": "unavailable"}
+        except (DataError, KeyError, TypeError, AttributeError, IndexError):
+            return {"starting_grid": {}, "grid_status": "invalid"}
 
     def context(self, session):
         """Small optional files; missing conditions must not prevent a replay."""
