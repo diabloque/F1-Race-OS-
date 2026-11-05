@@ -35,8 +35,12 @@ class RemoteReplay:
                     ],
                 }
             )
-        preferred = next((d for d in drivers if d["code"] == "NOR" and d["laps"]), None)
-        preferred = preferred or next((d for d in drivers if d["laps"]), drivers[0])
+        available = [driver for driver in drivers if driver["laps"]]
+        preferred = available[0] if available else drivers[0]
+        for driver in available:
+            if driver["code"] == "NOR":
+                preferred = driver
+                break
         return {
             "session_id": sid,
             "source": SOURCE,
@@ -60,12 +64,11 @@ class RemoteReplay:
         if "track" in session:
             return session["track"]
         preferred = self.catalog(sid)["initial_driver_number"]
-        candidates = [
-            (driver, lap)
-            for driver in session["drivers"]
-            for lap in session["laps"][driver["number"]]
-            if lap["lap_start_utc"] and lap["lap_duration_s"]
-        ]
+        candidates = []
+        for driver in session["drivers"]:
+            for lap in session["laps"][driver["number"]]:
+                if lap["lap_start_utc"] and lap["lap_duration_s"]:
+                    candidates.append((driver, lap))
         candidates.sort(
             key=lambda item: (item[0]["number"] != preferred, item[1]["lap_duration_s"])
         )
@@ -228,20 +231,20 @@ class RemoteReplay:
                 }
             )
             if n == focus:
-                trail = [
-                    {
-                        key: s[key]
-                        for key in (
-                            "x",
-                            "y",
-                            "timestamp_utc",
-                            "throttle_pct",
-                            "brake_pressed",
-                        )
-                    }
-                    for s in values[: index + 1]
-                    if s["x"] is not None and s["y"] is not None and (s["x"] or s["y"])
-                ]
+                for reading in values[: index + 1]:
+                    if reading["x"] is None or reading["y"] is None:
+                        continue
+                    if reading["x"] == 0 and reading["y"] == 0:
+                        continue
+                    trail.append(
+                        {
+                            "x": reading["x"],
+                            "y": reading["y"],
+                            "timestamp_utc": reading["timestamp_utc"],
+                            "throttle_pct": reading["throttle_pct"],
+                            "brake_pressed": reading["brake_pressed"],
+                        }
+                    )
         # Download the next lap shortly before a boundary, but never return its future values.
         for driver, lap in requests:
             if (
