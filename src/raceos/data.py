@@ -1,4 +1,4 @@
-"""Normalize FastF1 samples, save JSON, and report data quality."""
+"""UTC and numeric helpers, sample normalization, JSON files, and quality summaries."""
 
 from __future__ import annotations
 
@@ -26,11 +26,10 @@ class DataError(ValueError):
 
 
 def utc_datetime(value: str | datetime) -> datetime:
-    result = (
-        datetime.fromisoformat(value.replace("Z", "+00:00"))
-        if isinstance(value, str)
-        else value
-    )
+    if isinstance(value, str):
+        result = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    else:
+        result = value
     if result.tzinfo is None:
         raise DataError("A timestamp must include its timezone.")
     return result.astimezone(UTC)
