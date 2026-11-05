@@ -16,3 +16,6 @@ node_modules/
 
 # Temporary Word owner files
 ~$*.docx
+
+# Local project guides and screenshots
+/docs/
