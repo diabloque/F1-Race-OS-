@@ -22,13 +22,11 @@ export function useArchive() {
         if (controller.signal.aborted) return;
         setSessions(records);
         setHealth(status);
-        setSessionId((previous) =>
-          records.some((item) => item.id === previous)
-            ? previous
-            : ([...records].reverse().find((item) => item.name === 'Race')?.id ??
-              records.at(-1)?.id ??
-              ''),
-        );
+        setSessionId((previous) => {
+          if (records.some((item) => item.id === previous)) return previous;
+          const latestRace = [...records].reverse().find((item) => item.name === 'Race');
+          return latestRace?.id ?? records.at(-1)?.id ?? '';
+        });
       })
       .catch((error) => {
         if (!controller.signal.aborted) {
