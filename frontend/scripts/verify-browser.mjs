@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { mkdirSync, openSync, writeFileSync, closeSync, readFileSync } from 'node:fs';
+import { mkdirSync, openSync, writeFileSync, closeSync } from 'node:fs';
 import net from 'node:net';
 import path from 'node:path';
 import { chromium } from 'playwright';
@@ -54,13 +54,35 @@ try {
   };
   assert.equal((await get('/api/health')).version, '0.4.1');
   const sessions = (await get('/api/library')).items;
+  // These recorded sessions are the fixtures for the online integration checks.
+  const fixtures = [
+    { year: 2025, round: 16, session: 'Qualifying' },
+    { year: 2024, round: 16, session: 'Qualifying' },
+    { year: 2022, round: 16, session: 'Race' },
+  ];
+  for (const fixture of fixtures) {
+    const saved = sessions.some(
+      (session) =>
+        session.year === fixture.year &&
+        session.round === fixture.round &&
+        session.name === fixture.session,
+    );
+    if (saved) continue;
+    const response = await fetch(base + '/api/remote/open', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(fixture),
+    });
+    assert.equal(response.status, 200, `Could not open ${JSON.stringify(fixture)}`);
+    sessions.push(await response.json());
+  }
   const monza = sessions.find(
     (s) => s.year === 2025 && s.location === 'Monza' && s.name === 'Qualifying',
   );
   const second = sessions.find(
     (s) => s.year === 2024 && s.location === 'Monza' && s.name === 'Qualifying',
   );
-  assert.ok(monza && second, 'Both cached Monza sessions must be prepared.');
+  assert.ok(monza && second, 'Both Monza qualifying fixtures must be available.');
   const prefix = `/api/sessions/${monza.id}`;
   const metadata = await get(prefix + '/replay');
   assert.equal(metadata.drivers.length, 20);
@@ -527,8 +549,8 @@ try {
     );
   };
   await checkEngineering(raceFrame);
-  const pitAudit = JSON.parse(readFileSync(path.join(data, 'phase5-validation.json'), 'utf8'));
-  const pitExit = pitAudit.pit_exit_seconds;
+  // Recorded NOR first pit exit in the 2022 Monza race, relative to replay start.
+  const pitExit = 3112.967;
   const pitFrame = async (seconds) =>
     get(
       racePrefix +
