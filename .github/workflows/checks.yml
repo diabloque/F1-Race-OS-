@@ -9,8 +9,6 @@ jobs:
   checks:
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/playwright
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -26,7 +24,11 @@ jobs:
       - name: Frontend tests
         run: npm --prefix frontend test
       - name: Install test browser on the runner
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/playwright
         working-directory: frontend
         run: npx playwright install --with-deps chromium
       - name: Offline browser smoke test
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/playwright
         run: npm --prefix frontend run test:smoke
