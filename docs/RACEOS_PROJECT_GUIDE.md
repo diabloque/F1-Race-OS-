@@ -25,7 +25,7 @@ RaceOS turns that source data into a navigable application. The project includes
 
 ## Completion status
 
-The local historical replay and comparison version works and has been tested. Git history and a GitHub Actions workflow are prepared locally. The source repository is https://github.com/diabloque/F1-Race-OS-. Publishing the source does not deploy a running server. Live ingestion, strategy prediction, machine learning and a hosted public deployment remain possible future extensions.
+The local historical replay and comparison version works and has been tested. The source and GitHub Actions workflow are published on GitHub. The source repository is https://github.com/diabloque/F1-Race-OS-. Publishing the source does not deploy a running server. Live ingestion, strategy prediction, machine learning and a hosted public deployment remain possible future extensions.
 
 <!-- PAGE -->
 # 1 Running and using RaceOS
@@ -339,7 +339,7 @@ The frontend lives under `frontend/src`. React components render parts of the pa
 
 Each React state declaration now occupies its own statement in the two main hooks and comparison view. Lap comparison chooses default drivers and laps through explicit steps. It checks A and B completion separately before showing results. The summary uses a named quicker lap instead of a deeply nested display expression.
 
-The track comparison uses ordinary `if` statements for gain and loss colors and a small brake label helper. An unused paginated frontend API helper and its unused Page type were removed. Older chart helpers that still have tests were retained as reference utilities, so the review did not erase useful earlier work.
+The track comparison uses ordinary `if` statements for gain and loss colors and a small brake label helper. An unused paginated frontend API helper and its unused Page type were removed. The later cleanup removed obsolete chart helpers, their tests, unused icons and 95 CSS rules. Session selection and replay preparation now use clearer conditions, named variables and ordinary loops.
 
 The project still uses real engineering concepts such as asynchronous requests, cancellation, binary search and cache locks where they are needed. These are explained rather than deliberately weakened. The goal is code a student can study, modify and accurately explain, with no unnecessary framework or clever shorthand.
 
@@ -348,7 +348,7 @@ The project still uses real engineering concepts such as asynchronous requests, 
 
 ## What was checked
 
-The final review passed 147 Python tests, 13 frontend tests and 28 real data browser scenarios. The added trail tests cover sudden position jumps, time gaps, invalid points and coordinate-unit independence. The TypeScript and Vite production build passed. Browser checks covered actual Monza sessions, driver changes, playback, backward seeking, pit and weather state, timing, comparison colors and slider values, errors, recovery and mobile layout.
+The cleanup passed 147 Python tests, 8 frontend tests and 28 real data browser scenarios. Five tests for the deleted chart helpers were removed. The added trail tests cover sudden position jumps, time gaps, invalid points and coordinate-unit independence. The TypeScript and Vite production build passed. Browser checks covered actual Monza sessions, driver changes, playback, backward seeking, pit and weather state, timing, comparison colors and slider values, errors, recovery and mobile layout.
 
 The Python tests check calculations and failure cases such as uneven sample intervals, missing channels, duplicate timestamps, gaps and future lap requests. Frontend tests check time formatting, projection, clock arithmetic and input colors. Real data browser scenarios check how the pieces work together in installed headless Edge.
 
@@ -363,15 +363,15 @@ npm --prefix frontend run build
 npm --prefix frontend run test:smoke
 ```
 
-The smoke check uses its own empty database and an intercepted empty schedule. It tests fresh startup without depending on remote F1 publication. The larger `test:browser` script needs the prepared Monza bookmarks and `data/phase5-validation.json`; it is a local integration check rather than the fresh clone CI smoke test.
+The smoke check uses its own empty database and an intercepted empty schedule. It tests fresh startup without depending on remote F1 publication. The larger `test:browser` script opens its required Monza sessions when needed and uses a recorded pit-exit fixture. It needs internet for uncached files; the fresh clone CI smoke test works offline.
 
 ## Environments and GitHub
 
 `.venv` isolates Python packages for this project. `frontend/node_modules` does the equivalent job for JavaScript dependencies. Requirements and npm lock files record the verified dependency versions, so a different computer can install the same stack. `run.py` stores setup fingerprints to avoid repeating unchanged installation and build steps.
 
-The local Git repository tracks code, tests, configuration and documentation. It excludes downloaded data, environments, dependencies, builds and `.env` files. A small Git setting trusts this exact E drive folder because the filesystem does not record ownership. Uploading source later will not automatically start a web server.
+The local Git repository tracks code, tests, configuration and documentation. It excludes downloaded data, environments, dependencies, builds and `.env` files. A small Git setting trusts this exact E drive folder because the filesystem does not record ownership. Publishing the source does not automatically start a web server.
 
-The GitHub Actions workflow is prepared for a clean Linux runner with Python 3.11 and Node 24. It installs, builds, tests and performs a browser smoke check. Its result can be checked on the repository Actions tab after upload. See `docs/GITHUB_SETUP.md` for the future upload steps.
+The source is published in the diabloque/F1-Race-OS- GitHub repository. GitHub Actions checks setup, the build, tests and browser smoke on a clean Linux runner using Python 3.11 and Node 24. Results appear in the Actions tab. See `docs/GITHUB_SETUP.md` for cloning and later updates.
 
 <!-- PAGE -->
 # 12 Limits and useful next steps
@@ -403,4 +403,4 @@ To present this version, demonstrate opening a session, following a driver, seek
 | Interpolation | Estimating an intermediate value between supported samples |
 | Coverage | The fraction of a time or distance window supported by data |
 
-The README and `docs/CODE_GUIDE.md` provide a shorter route back into the source. The phase result files preserve earlier decisions and validation evidence. This guide explains the current implementation and the changes made to reach it.
+The README and `docs/CODE_GUIDE.md` provide a shorter route back into the source. Obsolete phase reports and earlier implementation details remain available in Git history. This guide explains the current implementation and the changes made to reach it.
