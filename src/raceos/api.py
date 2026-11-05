@@ -1,4 +1,4 @@
-"""Read API over the stored historical data; provider downloads stay in the CLI."""
+"""HTTP API for on-demand replay, lap comparison, and the local archive."""
 
 from __future__ import annotations
 
