@@ -1,16 +1,27 @@
-# GitHub setup
+# Working with the GitHub repository
 
-The source repository is https://github.com/diabloque/F1-Race-OS-.
-The project is built and verified locally before upload. The launcher installs
-and runs the application locally; it does not upload code or deploy a hosted app.
+The project is published at [diabloque/F1-Race-OS-](https://github.com/diabloque/F1-Race-OS-).
+GitHub stores the source and runs checks. Run the application on your computer.
 
-## Local use and validation
+## Clone and run
 
-Install Python 3.11 and Node.js 24 LTS, then run `python run.py`. First setup
-needs internet. Choose a year, Grand Prix, and Race or Qualifying in the app.
-Use `python run.py --setup-only` for installation/build without starting a server.
+Install Python 3.11 and Node.js 24 LTS. Open a terminal in the folder where you
+want the project. To keep it on E:, choose a folder on E: before cloning.
 
-Windows checks after setup:
+```powershell
+git clone https://github.com/diabloque/F1-Race-OS-.git
+cd F1-Race-OS-
+python run.py
+```
+
+The launcher creates the environment, installs locked dependencies, builds the
+frontend, and opens the app. A fresh clone has an empty session library. Open a
+Race or Qualifying session in the app to download only the data it needs.
+Use `python run.py --setup-only` to install and build without starting the server.
+
+## Check changes
+
+After setup on Windows:
 
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q --basetemp=data/tmp/pytest-manual
@@ -21,27 +32,28 @@ npm --prefix frontend run test:smoke
 
 The smoke check uses installed Edge on Windows. Linux/macOS use Playwright
 Chromium; install it first with `npx playwright install chromium` from `frontend`.
-This browser download is optional for ordinary app use. CI installs Chromium in
-its temporary runner, not on this user's Windows C drive.
+This browser download is optional for ordinary app use. GitHub Actions installs
+its browser in the temporary CI runner.
 
-## Upload and later updates
+## Upload later changes
 
-The chosen repository uses the existing local history. After local verification,
-the upload commands are:
+A clone already has `origin` configured. Review the files before committing:
 
 ```powershell
-git remote add origin https://github.com/diabloque/F1-Race-OS-.git
-git push -u origin main
+git status
+git diff
+git add <files-you-changed>
+git commit -m "Describe the change"
+git push
 ```
 
-Authenticate using your normal GitHub/Git credential flow. Never put tokens in
-source files. The Actions tab shows the workflow result after pushing. GitHub
-hosting the repository does not start the Python server or publish a running app.
+Authenticate through your normal Git credential flow. Keep tokens out of source
+files. GitHub Actions runs setup, backend/frontend tests, and the offline browser
+smoke check for each push or pull request. See the **Actions** tab for results.
 
-## What goes into Git
+## Tracked and ignored files
 
-Source, tests, dependency locks, documentation, and the CI workflow are tracked.
+Source, tests, dependency locks, current guides, screenshots, and CI are tracked.
 `data/`, `.venv/`, `node_modules/`, generated builds, and `.env` files are ignored.
-A fresh clone has an empty session library and downloads only requested data.
-The new prepared-data cache remains capped at 200 MiB. Existing local archives
-and earlier backups are preserved separately.
+The remote cache is capped at 200 MiB. Local archives and backups stay separate.
+Earlier phase reports and the obsolete chart implementation remain in Git history.
