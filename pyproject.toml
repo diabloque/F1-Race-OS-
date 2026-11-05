@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "raceos"
 version = "0.4.1"
-description = "A motorsport engineering platform: historical ingestion, storage, and API"
+description = "Historical Formula 1 replay and lap comparison workspace"
 requires-python = ">=3.11"
 dependencies = [
     "fastf1==3.8.3",
