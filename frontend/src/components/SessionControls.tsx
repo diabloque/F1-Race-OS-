@@ -64,13 +64,11 @@ export function SessionControls({
       .then((result) => {
         if (controller.signal.aborted) return;
         setEvents(result.items);
-        setRound((previous) =>
-          result.items.some((item) => item.round === previous)
-            ? previous
-            : (result.items.find((item) => item.location === 'Monza')?.round ??
-              result.items[0]?.round ??
-              0),
-        );
+        setRound((previous) => {
+          if (result.items.some((item) => item.round === previous)) return previous;
+          const monza = result.items.find((item) => item.location === 'Monza');
+          return monza?.round ?? result.items[0]?.round ?? 0;
+        });
       })
       .catch((error) => {
         if (!controller.signal.aborted) setError(error.message);
