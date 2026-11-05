@@ -1,7 +1,7 @@
 # RaceOS
 
 RaceOS is a local motorsport engineering workspace with historical track replay.
-The dashboard now loads **TracingInsights prepared data remotely**, one driver
+The dashboard loads **TracingInsights prepared data remotely**, one driver
 lap at a time. Races and qualifying are supported; practice sessions are excluded.
 FastF1 ingestion and the existing SQLite archive remain available as reference tools.
 
@@ -61,8 +61,9 @@ telemetry loads only for the active lap of each car. Upcoming laps are buffered
 near boundaries. Seeking elsewhere fetches the required lap files. There is no
 bulk season import or new SQLite telemetry import in this workflow.
 
-This working folder has saved Monza race/qualifying bookmarks; a fresh checkout
-starts with an empty library. For a first demo, open 2025 Italian Grand Prix qualifying. Use Play/Pause, 0.25x-16x speed, ten-second steps, lap jumps, or the timeline.
+A fresh checkout starts with an empty library. For a first demo, open 2025
+Italian Grand Prix qualifying. Use Play/Pause, 0.25x-16x speed, ten-second steps,
+lap jumps, or the timeline.
 Select any car or use the Driver menu to follow its inputs.
 
 ## Storage
@@ -76,8 +77,7 @@ Select any car or use the Driver menu to follow its inputs.
 
 The cap applies to the **new remote cache**. Existing FastF1 cache, exported JSON,
 SQLite archive, and earlier backups have been retained separately. They are not
-removed or counted inside that cap. Source changes were backed up in
-`data/tracinginsights-backup`; no new copy of the large SQLite archive was made.
+removed or counted inside that cap.
 
 ## Data meaning
 
@@ -130,7 +130,6 @@ wind at the replay clock. Reports older than two virtual minutes are marked as
 older observations. Race control shows up to 50 messages already issued at that
 time, including flags, safety cars, and penalties. Missing optional data remains
 unavailable without stopping replay. Backward seeking restores previous state.
-See [Phase 5 results](docs/PHASE5_RESULTS.md).
 
 ## Lap comparison
 
@@ -156,19 +155,17 @@ locally gains time and red where B loses time. Hover the circuit or move the
 distance slider to inspect cumulative B minus A, speed, throttle, and braking.
 This is approximate: prepared positions and distance alignment do not establish
 identical physical racing lines. Missing intervals are not connected.
-See [Phase 6 comparison results](docs/PHASE6_RESULTS.md).
 
 ## GitHub and checks
 
-Everything is being finished locally first. The repository includes a GitHub
-Actions workflow for locked setup, Python/frontend tests, and an offline browser
-smoke test. It runs after a future push or pull request; adding files locally
-does not run GitHub Actions or host the app.
+The repository is published at [diabloque/F1-Race-OS-](https://github.com/diabloque/F1-Race-OS-).
+GitHub Actions runs locked setup, Python/frontend tests, and an offline browser
+smoke test on pushes and pull requests. Check the repository's **Actions** tab
+for results. Uploading the source does not host the running Python application.
 
-See [GitHub setup](docs/GITHUB_SETUP.md) for the upload steps and
-[Phase 7 results](docs/PHASE7_RESULTS.md) for local verification. Downloaded data,
-`.venv`, `node_modules`, builds, browser profiles, and caches are excluded from Git.
-Fresh checkouts load selected sessions remotely; no initial FastF1 import is required.
+See [GitHub setup](docs/GITHUB_SETUP.md) for cloning and contributing changes.
+Downloaded data, `.venv`, `node_modules`, builds, browser profiles, and caches are
+excluded from Git. A fresh checkout needs no initial FastF1 import.
 
 ## APIs
 
@@ -193,8 +190,7 @@ for reference work. They are not the dashboard's remote loading path.
 
 ## Edit and verify
 
-See [the code guide](docs/CODE_GUIDE.md) and
-[the remote-source update](docs/TRACINGINSIGHTS_UPDATE.md).
+See [the code guide](docs/CODE_GUIDE.md) for the data flow and file responsibilities.
 
 ```powershell
 npm --prefix frontend run dev
@@ -207,10 +203,11 @@ npm --prefix frontend run test:smoke
 Vite development serves at http://127.0.0.1:5173 and proxies the backend on port 8000. Browser checks use installed headless Edge and a temporary server on a free
 port with an isolated empty archive and no remote-data dependency. Optional
 `npm --prefix frontend run test:browser` runs the larger real-data scenarios;
-it needs locally prepared Monza bookmarks and `data/phase5-validation.json`.
-These scenarios save screenshots/evidence under `data/remote-replay-*`.
+it opens the required Monza sessions if they are not saved yet and needs
+internet for uncached data. It saves screenshots/evidence under
+`data/remote-replay-*`.
 Black and Prettier are the development formatters. All new code uses ordinary
-Python functions/classes, HTTP JSON requests, and React components. The adapter
+Python functions/classes, HTTP JSON requests, and React components. TypeScript also rejects unused local variables and parameters. The adapter
 reads TracingInsights files directly, so installing the larger tif1 package is
 unnecessary.
 
