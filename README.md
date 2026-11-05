@@ -9,6 +9,20 @@ For a beginner walkthrough of the finished app, its architecture and the code,
 read the [project guide](docs/RACEOS_PROJECT_GUIDE.md) or open the
 [Word guide](docs/RaceOS%20Project%20Guide.docx).
 
+## Screenshots
+
+Track replay, one selected driver, and the shared session controls:
+
+![Race workspace with track replay and driver inputs](docs/images/race-workspace.png)
+
+Completed lap timing and input comparison within the same workspace:
+
+![Completed lap comparison and distance overlay](docs/images/lap-comparison.png)
+
+Starting grid before recorded race timing begins:
+
+![Starting grid with intervals and gaps left blank](docs/images/starting-grid.png)
+
 ## Run
 
 Install **Python 3.11** and **Node.js 24 LTS**, then open a terminal in this folder:
@@ -71,6 +85,10 @@ TracingInsights files are prepared from FastF1 and other sources. Positions and
 some channels contain upstream interpolation; RaceOS labels them as prepared data.
 The source's lap-start dates and relative sample times establish one shared UTC
 clock. Replay holds recorded samples without further interpolation or extrapolation.
+Colored trails break across large position jumps, invalid points, non-increasing
+timestamps, and sampling gaps. This display filter uses the reference lap's
+average movement as a generous continuity bound; it does not repair source
+coordinates or modify driver inputs.
 The separate completed-lap comparison interpolates time and position along distance.
 Every returned replay sample is at or before the replay clock; samples over one second old stay unknown.
 Original live delivery delays are unavailable.

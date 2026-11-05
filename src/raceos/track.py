@@ -46,6 +46,7 @@ def build_track(bundle: dict) -> dict:
             "points": outline,
             "reference_driver_number": bundle["driver"]["number"],
             "reference_lap_number": lap["lap_number"],
+            "reference_lap_duration_s": lap["lap_duration_s"],
             "approximate": True,
         }
     raise DataError("No complete recorded lap is available for the track outline.")

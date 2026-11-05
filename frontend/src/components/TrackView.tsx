@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { driverColor, fitTrack, inputColor, project } from '../replay';
+import { driverColor, fitTrack, inputColor, project, trailSegments } from '../replay';
 import type { CarState, Track, TrailPoint } from '../replay';
 interface Props {
   track: Track;
@@ -26,6 +26,7 @@ export function TrackView({ track, cars, trail, focus, onFocus }: Props) {
   );
   const outline = points.map((point) => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ');
   const start = points[0];
+  const segments = useMemo(() => trailSegments(trail, track), [trail, track]);
   return (
     <div className={allLabels ? 'track-canvas all-driver-labels' : 'track-canvas'}>
       <div className="track-legend" role="note" aria-label="Track color key">
@@ -111,13 +112,7 @@ export function TrackView({ track, cars, trail, focus, onFocus }: Props) {
           strokeOpacity="0.6"
           strokeLinejoin="round"
         />
-        {trail.map((point, index) => {
-          const previous = trail[index - 1];
-          if (
-            !previous ||
-            Date.parse(point.timestamp_utc) - Date.parse(previous.timestamp_utc) > 1000
-          )
-            return null;
+        {segments.map(([previous, point], index) => {
           const a = project(previous, layout),
             b = project(point, layout);
           return (

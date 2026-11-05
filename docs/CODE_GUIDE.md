@@ -250,3 +250,19 @@ Validation: 134 backend tests, 10 frontend tests, the production build, and the
 isolated browser smoke check passed. The affected real Monaco session opens
 successfully and returns replay frames without exposing future samples. Live
 browser results and screenshots are under `data/` on E:.
+
+## Track trail continuity
+
+`trailSegments` in `frontend/src/replay.ts` selects neighboring points that can
+be joined safely. It rejects gaps over one second, duplicate/reversed times,
+invalid coordinates, and unusually large moves. The bound is four times the
+reference lap's average coordinate movement, plus a small noise allowance.
+The backend includes the reference lap duration beside the outline. A 60-second
+fallback supports older saved outlines. Using the same coordinate units for
+both lengths keeps the rule independent of the source scale. It is a display
+heuristic; it does not correct source positions or change inputs. Drawing resumes
+with the next consistent pair, without reconnecting across a rejected point.
+
+The final review passed 147 backend tests, 13 frontend tests, and 28 browser
+scenarios. A separate clean source snapshot on E: also passed first-time setup,
+setup reuse, dependency consistency, and the empty-library browser smoke test.

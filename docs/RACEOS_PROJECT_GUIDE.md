@@ -2,7 +2,7 @@
 
 **A guide to the application and its implementation**
 
-Prepared for Ryan on 22 October 2026
+Updated for Ryan on 5 November 2026
 
 RaceOS is a local Formula 1 engineering workspace for replaying historical races and qualifying sessions. It shows cars moving around a circuit while a selected driver's speed, throttle, braking, gear and engine RPM follow the same recorded moment. It also provides race timing, tyres, weather, race control and completed lap comparisons.
 
@@ -15,17 +15,17 @@ This guide explains what we built, why the main design choices were made, how th
 - Follow one driver while keeping the other cars visible, or display only the selected car.
 - Inspect race positions and sector based gaps, tyre information, recorded weather and issued race control messages.
 - Compare completed laps using timing, input percentages and an approximate circuit overlay.
-- Inspect missing values, unusual readings and sampling gaps on the data quality screen.
+- Use track replay and completed lap comparison in one Race workspace with a shared session and timeline.
 
 ## The current source choice
 
-The normal dashboard reads prepared JSON files from TracingInsights. These files include data prepared from FastF1 and other sources. FastF1 remains installed for the earlier import and SQLite archive tools. OpenF1 was part of the initial experiment and is no longer an active dashboard source. The current app does not merge independent OpenF1 and FastF1 telemetry feeds.
+The normal dashboard reads prepared JSON files from TracingInsights. A small cached Jolpica response supplies starting-grid positions for races; its finishing results are not used in replay. The TracingInsights files include data prepared from FastF1 and other sources. FastF1 remains installed for the earlier import and SQLite archive tools. OpenF1 was part of the initial experiment and is no longer an active dashboard source. The current app does not merge independent OpenF1 and FastF1 telemetry feeds.
 
 RaceOS turns that source data into a navigable application. The project includes the backend, frontend, replay logic, calculations, storage rules, tests and local startup tooling. A data library supplies data; RaceOS supplies the application around it.
 
 ## Completion status
 
-The local historical replay and comparison version works and has been tested. Git history and a GitHub Actions workflow are prepared locally. Uploading to GitHub is deferred until you choose to do it. Live ingestion, strategy prediction, machine learning and a hosted public deployment remain possible future extensions.
+The local historical replay and comparison version works and has been tested. Git history and a GitHub Actions workflow are prepared locally. The source repository is https://github.com/diabloque/F1-Race-OS-. Publishing the source does not deploy a running server. Live ingestion, strategy prediction, machine learning and a hosted public deployment remain possible future extensions.
 
 <!-- PAGE -->
 # 1 Running and using RaceOS
@@ -49,9 +49,9 @@ The browser address is `http://127.0.0.1:8000/`. This is a server running on you
 2. Use Follow Driver to select Norris or Verstappen. Click a car on the circuit to change the focused driver without changing the replay time.
 3. Play the session, adjust the playback speed or use Jump to Lap. Moving the timeline pauses playback and reconstructs the selected moment.
 4. Read the selected driver's inputs. Turn on Selected car only if the full grid feels crowded. Driver labels can also be shown or hidden.
-5. Open Lap comparison. Advance the shared clock until timed laps finish, select A and B, then select Compare laps.
+5. In Race workspace, use the Lap comparison link to jump below the replay. Advance the shared clock until timed laps finish, select A and B, then select Compare laps.
 6. Inspect the circuit colors and move the distance slider. Try comparing different drivers and then two completed laps from one driver.
-7. Open Data quality to see coverage and unusual values for the selected prepared lap.
+7. Use Back to replay to return to the track. Both links preserve playback and the selected session. The sidebar contains Race workspace and Session library.
 
 Use a Race session to demonstrate the timing tower. Qualifying deliberately does not show race standings. A fresh checkout begins with an empty session library; saved bookmarks and downloaded data are not bundled into Git.
 
@@ -61,6 +61,8 @@ Use a Race session to demonstrate the timing tower. Qualifying deliberately does
 
 <!-- PAGE -->
 # 2 How the application fits together
+
+The Race workspace contains Track View and completed lap comparison under one session bar and playback timeline. Section links scroll within the page without resetting the clock. Session library is the other navigation entry; there is no separate Data quality screen.
 
 RaceOS has two main parts. The frontend is the interface in the browser. The backend is a Python program that downloads data, validates it, reconstructs session state and returns JSON responses. They communicate through an API, which is a collection of HTTP routes with defined inputs and outputs.
 
@@ -77,7 +79,7 @@ RaceOS has two main parts. The frontend is the interface in the browser. The bac
 
 ## Follow one request
 
-The user chooses an event in `SessionControls.tsx`. The browser sends `POST /api/remote/open` with the year, round and session type. The backend loads metadata and finds a complete reference lap for the circuit outline. The frontend then asks for replay snapshots at specific UTC timestamps.
+The user chooses an event in `SessionControls.tsx`. The browser sends `POST /api/remote/open` with the year, round and session type. The backend loads metadata and looks for a complete reference lap for the circuit outline. If the prepared files have usable telemetry but no complete outline, inputs and timing still replay with a clear map message. The frontend then asks for replay snapshots at specific UTC timestamps.
 
 For a snapshot, `remote_replay.py` finds each driver's active lap. The provider reads the corresponding prepared lap file from the cache or downloads it. RaceOS selects the latest supported sample at or before the requested time, calculates engineering state and sends the frame to the browser. `useReplay.ts` updates the map and driver panel together.
 
@@ -107,7 +109,7 @@ We added a SQLite archive and a FastAPI backend. The archive stores sessions, pr
 
 ## Phase 3 Telemetry interface
 
-We built the React and TypeScript dashboard with session, driver and lap selection, synchronized input views, a session library and data quality reporting. The early interface used telemetry charts. It was then adapted to your preferred track based experience, with one focused driver and fewer repeated statistics.
+We built the React and TypeScript dashboard with session, driver and lap selection, synchronized input views, a session library and an initial data quality screen. That screen was later removed at your request; internal validation remains. The early interface used telemetry charts. It was then adapted to your preferred track based experience, with one focused driver and fewer repeated statistics.
 
 ## Phase 4 Historical replay
 
@@ -123,7 +125,7 @@ We added sector based race timing, tyre compound and stint state, completed tyre
 
 ## Phases 6 and 7 Analysis and local setup
 
-We added completed lap selection, timing and sector deltas, time weighted input percentages and approximate distance alignment on the circuit. Finally, we added the one command launcher, clean installation verification, local Git history, a GitHub Actions workflow and setup documentation. This review then simplified dense code and added the present guide.
+We added completed lap selection, timing and sector deltas, time weighted input percentages and approximate distance alignment on the circuit. Finally, we added the one command launcher, clean installation verification, local Git history, a GitHub Actions workflow and setup documentation. The later review simplified dense code and added this guide. Further updates combined replay and comparison, added starting-grid order and improved missing-position and timestamp handling.
 
 <!-- PAGE -->
 # 4 Remote data and local storage
@@ -152,7 +154,9 @@ The 200 MiB limit applies only to the new remote file cache. It is not a limit o
 
 The cache compresses JSON with gzip, restricts individual downloads to 20 MiB and limits decoded memory entries. Normalized telemetry is bounded to 40,000 samples and session metadata to four open sessions in memory. A small worker pool downloads files concurrently; locks prevent duplicate simultaneous downloads of the same file. These details protect storage and responsiveness.
 
-HTTPS certificate verification remains enabled. The downloader uses system certificates, timeouts and fallback source URLs. Optional weather or race control failures can be reported without stopping the main replay. Cached files help repeated use, but an arbitrary uncached race is not guaranteed to work offline.
+HTTPS certificate verification remains enabled. The downloader uses system certificates, timeouts and fallback source URLs. Optional grid, weather or race control failures can be reported without stopping the main replay. Cached files help repeated use, but an arbitrary uncached race is not guaranteed to work offline.
+
+Replay begins at racing Lap 1 and does not load a separate formation lap. Prepared positions can remain inaccurate even after visible trail joins are filtered.
 
 <!-- PAGE -->
 # 5 Replay and track drawing
@@ -161,7 +165,7 @@ HTTPS certificate verification remains enabled. The downloader uses system certi
 
 Replay is driven by one UTC timestamp for the session. When you seek, every car and engineering panel is reconstructed for that moment. Cars do not each run on separate stopwatches. Changing the focused driver changes the panel, not the session time.
 
-For each car, RaceOS chooses the latest sample whose timestamp is less than or equal to the clock. Samples more than one second old are treated as unavailable. RaceOS does not extrapolate a new car location during a data gap. The prepared source already contains interpolation; that provenance is stated in the interface.
+For each car, RaceOS selects the latest sample at or before the clock. Samples over one second old become unavailable; the app does not extrapolate positions. The source already contains interpolation, as stated in the interface.
 
 A lap result appears after its recorded completion. Seeking backward before the finish removes it again. The same principle applies to tyre changes, weather observations and issued race control messages. Files can contain later samples internally, but the replay response filters what is returned to the browser.
 
@@ -173,7 +177,7 @@ Playback uses elapsed wall time multiplied by playback speed. Long data waits ar
 
 ## Circuit geometry
 
-A complete prepared reference lap supplies the static x and y outline. `fitTrack` and `project` scale and rotate source positions into a 1000 by 600 SVG coordinate space while preserving the aspect ratio. The same transform is applied to the outline, cars and selected driver's trail.
+A complete prepared reference lap supplies the static x and y outline. Missing reference positions produce an explanatory empty map, while available inputs and timing remain usable. `fitTrack` and `project` scale and rotate source positions into a 1000 by 600 SVG coordinate space while preserving the aspect ratio. The same transform is applied to the outline, cars and selected driver's trail.
 
 | Replay trail color | Meaning |
 | --- | --- |
@@ -183,14 +187,20 @@ A complete prepared reference lap supplies the static x and y outline. `fitTrack
 
 Unsupported input states remain unknown. At your request, there is no separate gray legend label. Selected car only and optional driver labels reduce crowding without changing the circuit. This is a replay of observed data; it does not simulate vehicle physics or supply official broadcast video.
 
+The trail renderer limits short moves to four times the reference lap's average speed, plus a small noise allowance. Using circuit length and lap duration keeps the rule independent of coordinate units. It is a display heuristic, not a physics measurement.
+
+A position jump, invalid point, non-increasing timestamp or gap over one second breaks the colored line. Drawing resumes at consistent points. Source positions and pedal inputs remain unchanged. Samples before lap start are excluded; malformed or reversed timestamps still fail validation.
+
 <!-- PAGE -->
 # 6 Race engineering features
 
 ## Race timing and intervals
 
-`race_timing.py` builds observations of sector line crossings at or before the replay clock. Progress is represented by lap and sector. Cars with more observed progress come first; crossing time breaks a tie. Generated retirement lap records are excluded from real timing observations.
+Before the first timing observation, the tower shows starting-grid order from Jolpica, with gaps and intervals blank. It validates the race date, season, round, car number and driver code; finishing positions are never used. Missing grid entries stay unknown.
 
-Gap to the leader and interval to the car ahead compare timestamps at the same lap and sector for both cars. For example, crossings at 100.000 and 102.500 seconds produce a 2.500 second gap at that line. A missing or inconsistent comparison stays unknown. These values update at timing lines, rather than being continuously measured official live gaps.
+`race_timing.py` then builds observations of sector line crossings at or before the replay clock. Progress is represented by lap and sector. Cars with more observed progress come first; crossing time breaks a tie. Generated retirement lap records are excluded from real timing observations.
+
+Gap to the leader and interval to the car ahead compare timestamps at the same lap and sector for both cars. For example, crossings at 100.000 and 102.500 seconds produce a 2.500 second gap at that line. A missing or inconsistent comparison stays unknown. These values update at available sector timing lines, potentially during Lap 1. Missing first-lap sectors delay the first update. The display labels grid order and recorded timing separately. Rewinding to the start restores the grid and clears future gaps.
 
 The timing tower appears for Race sessions. Clicking a row changes the focused driver without moving the clock. The displayed race lap is derived from the grid's observed progress, while the selected driver's own lap is a separate value.
 
@@ -285,7 +295,7 @@ Start with `run.py`, then follow one route in `src/raceos/api.py`. Next read the
 | `remote_cache.py` | HTTPS, compressed files, limits, locking and prefetch |
 | `remote_replay.py` | Current lap samples, car frames, outline and lap quality |
 | `engineering.py` | Tyres, pit visits, weather and issued messages |
-| `race_timing.py` | Sector crossing order and same line gaps |
+| `race_timing.py` | Starting grid before timing begins, then sector order and same line gaps |
 | `analysis.py` | Completed lap choices, timing deltas and input percentages |
 | `distance_comparison.py` | Normalized distance and supported comparison segments |
 | `data.py` and `contracts.py` | Numeric and UTC helpers, quality profiles and record validation |
@@ -322,7 +332,6 @@ The frontend lives under `frontend/src`. React components render parts of the pa
 | `RaceTiming.tsx` and `SessionConditions.tsx` | Timing tower, weather and race control |
 | `PerformanceAnalysis.tsx` | Completed lap choices and comparison results |
 | `LapComparisonTrack.tsx` | Gain and loss overlay and point inspection |
-| `ArchiveQuality.tsx` and `QualityReport.tsx` | Fetch and display prepared lap quality |
 | `api.ts`, `replay.ts`, `data.ts`, `types.ts` | Requests, projection, formatting and data shapes |
 | `styles.css` | Layout, colors and desktop and mobile styling |
 
@@ -339,11 +348,11 @@ The project still uses real engineering concepts such as asynchronous requests, 
 
 ## What was checked
 
-After the readability changes, 125 Python tests, 10 frontend tests and 24 real data browser scenarios passed. The TypeScript and Vite production build passed. Browser checks covered actual Monza sessions, driver changes, playback, backward seeking, pit and weather state, timing, comparison colors and slider values, errors, recovery and mobile layout.
+The final review passed 147 Python tests, 13 frontend tests and 28 real data browser scenarios. The added trail tests cover sudden position jumps, time gaps, invalid points and coordinate-unit independence. The TypeScript and Vite production build passed. Browser checks covered actual Monza sessions, driver changes, playback, backward seeking, pit and weather state, timing, comparison colors and slider values, errors, recovery and mobile layout.
 
 The Python tests check calculations and failure cases such as uneven sample intervals, missing channels, duplicate timestamps, gaps and future lap requests. Frontend tests check time formatting, projection, clock arithmetic and input colors. Real data browser scenarios check how the pieces work together in installed headless Edge.
 
-Earlier clean checkout verification created a new environment with no build, archive or saved sessions. The locked setup, repeat setup reuse, dependency check and offline browser smoke test passed. The temporary duplicate checkout was then removed. A Starlette TestClient deprecation warning exists, but it does not fail the current tests.
+Clean setup verification uses a separate source snapshot with no environment, frontend dependencies, build, archive or saved sessions. It exercises locked installation, repeat setup reuse, dependency consistency and the offline browser smoke test. Temporary setup files and logs remain on E: during validation. A Starlette TestClient deprecation warning exists, but it does not fail the current tests.
 
 ## Run the main checks on Windows
 
@@ -362,7 +371,7 @@ The smoke check uses its own empty database and an intercepted empty schedule. I
 
 The local Git repository tracks code, tests, configuration and documentation. It excludes downloaded data, environments, dependencies, builds and `.env` files. A small Git setting trusts this exact E drive folder because the filesystem does not record ownership. Uploading source later will not automatically start a web server.
 
-The GitHub Actions workflow is prepared for a clean Linux runner with Python 3.11 and Node 24. It installs, builds, tests and performs a browser smoke check. It has not run on GitHub yet because the project remains local. See `docs/GITHUB_SETUP.md` for the future upload steps.
+The GitHub Actions workflow is prepared for a clean Linux runner with Python 3.11 and Node 24. It installs, builds, tests and performs a browser smoke check. Its result can be checked on the repository Actions tab after upload. See `docs/GITHUB_SETUP.md` for the future upload steps.
 
 <!-- PAGE -->
 # 12 Limits and useful next steps
@@ -379,7 +388,7 @@ Lap differences can reflect tyres, fuel, traffic, weather and track conditions. 
 
 The original vision also discussed strategy simulation, tyre degradation models, lift and coast estimates, alerts, machine learning, an AI assistant, CarTwin and additional motorsport sources. Those are future modules, not hidden completed features. A live feed and hosted deployment would also require separate work. The implemented local version concentrates on historical replay, engineering context and completed lap analysis.
 
-To present this version, demonstrate opening a session, following a driver, seeking backward, reading timing and tyres and comparing two completed laps. Explain the source, cache and missing data rules. Then add screenshots and a short demo to the README and upload when you are ready.
+To present this version, demonstrate opening a session, following a driver, seeking backward, reading timing and tyres and comparing two completed laps. Explain the source, cache and missing data rules. The README includes screenshots and a short demonstration sequence. The source repository is ready for a reviewer to clone, install and run locally.
 
 ## Terms used in this guide
 

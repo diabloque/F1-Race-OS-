@@ -255,6 +255,27 @@ try {
   assert.equal(await page.getByRole('region', { name: 'Race timing', exact: true }).count(), 0);
   checkpoint('Map markers, inputs, trail, and lap results match the same past-only API snapshot');
 
+  const damaged = structuredClone(expected);
+  const badIndex = Math.floor(damaged.trail.length / 2);
+  assert.ok(badIndex > 2 && damaged.trail.length > badIndex + 2);
+  damaged.trail[badIndex].x += 1000000;
+  damaged.trail[badIndex].y += 1000000;
+  damaged.elapsed_s = target + 0.001;
+  damaged.at_utc = new Date(Date.parse(expected.at_utc) + 1).toISOString();
+  await page.route('**/replay/frame?*', (route) => route.fulfill({ json: damaged }));
+  await seek(target + 0.001);
+  const drawn = await page
+    .getByTestId('input-trail')
+    .evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-at')));
+  assert.ok(drawn.length > 0);
+  assert.ok(!drawn.includes(damaged.trail[badIndex].timestamp_utc));
+  assert.ok(!drawn.includes(damaged.trail[badIndex + 1].timestamp_utc));
+  await page.unroute('**/replay/frame?*');
+  await seek(target);
+  checkpoint(
+    'An impossible position jump breaks both adjacent trail lines without changing the recorded inputs or replay clock',
+  );
+
   assert.equal(
     await page.getByRole('complementary', { name: 'Selected driver details' }).count(),
     1,

@@ -1,8 +1,8 @@
 # GitHub setup
 
-The project is built and verified locally first. Upload is deferred until the
-user chooses the final repository and visibility. No GitHub upload or deployment
-is performed by the launcher.
+The source repository is https://github.com/diabloque/F1-Race-OS-.
+The project is built and verified locally before upload. The launcher installs
+and runs the application locally; it does not upload code or deploy a hosted app.
 
 ## Local use and validation
 
@@ -24,14 +24,13 @@ Chromium; install it first with `npx playwright install chromium` from `frontend
 This browser download is optional for ordinary app use. CI installs Chromium in
 its temporary runner, not on this user's Windows C drive.
 
-## Upload later
+## Upload and later updates
 
-Create an empty repository on GitHub with the chosen name and visibility.
-Do not add an initial README remotely when uploading the existing local history.
-Then replace the placeholder URL and run:
+The chosen repository uses the existing local history. After local verification,
+the upload commands are:
 
 ```powershell
-git remote add origin https://github.com/YOUR-NAME/YOUR-REPO.git
+git remote add origin https://github.com/diabloque/F1-Race-OS-.git
 git push -u origin main
 ```
 

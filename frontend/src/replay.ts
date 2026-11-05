@@ -57,6 +57,7 @@ export interface Track {
   points: Point[];
   approximate: boolean;
   note?: string;
+  reference_lap_duration_s?: number;
 }
 export interface TrailPoint extends Point {
   timestamp_utc: string;
@@ -182,4 +183,32 @@ export function inputColor(point: {
   )
     return '#708096';
   return point.throttle_pct > 15 ? '#66d7b0' : '#f5bf62';
+}
+
+export function trailSegments(trail: TrailPoint[], track: Track): [TrailPoint, TrailPoint][] {
+  let length = 0;
+  for (let index = 1; index < track.points.length; index++) {
+    const previous = track.points[index - 1];
+    const point = track.points[index];
+    length += Math.hypot(point.x - previous.x, point.y - previous.y);
+  }
+  if (!Number.isFinite(length) || length <= 0) return [];
+  const duration = track.reference_lap_duration_s ?? 60;
+  if (!Number.isFinite(duration) || duration <= 0) return [];
+  // Four times the lap's average speed is a generous visual continuity limit.
+  // Using the reference lap keeps this independent of coordinate units.
+  const maxRate = (length / duration) * 4;
+  const noiseAllowance = length * 0.001;
+  const segments: [TrailPoint, TrailPoint][] = [];
+  for (let index = 1; index < trail.length; index++) {
+    const previous = trail[index - 1];
+    const point = trail[index];
+    const seconds = (Date.parse(point.timestamp_utc) - Date.parse(previous.timestamp_utc)) / 1000;
+    if (!Number.isFinite(seconds) || seconds <= 0 || seconds > 1) continue;
+    if (![previous.x, previous.y, point.x, point.y].every(Number.isFinite)) continue;
+    const distance = Math.hypot(point.x - previous.x, point.y - previous.y);
+    if (distance > maxRate * seconds + noiseAllowance) continue;
+    segments.push([previous, point]);
+  }
+  return segments;
 }

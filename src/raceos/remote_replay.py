@@ -109,6 +109,7 @@ class RemoteReplay:
                     "points": points,
                     "reference_driver_number": driver["number"],
                     "reference_lap_number": lap["lap_number"],
+                    "reference_lap_duration_s": lap["lap_duration_s"],
                     "prepared": True,
                 }
                 return session["track"]
