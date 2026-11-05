@@ -5,24 +5,6 @@ The dashboard loads **TracingInsights prepared data remotely**, one driver
 lap at a time. Races and qualifying are supported; practice sessions are excluded.
 FastF1 ingestion and the existing SQLite archive remain available as reference tools.
 
-For a beginner walkthrough of the finished app, its architecture and the code,
-read the [project guide](docs/RACEOS_PROJECT_GUIDE.md) or open the
-[Word guide](docs/RaceOS%20Project%20Guide.docx).
-
-## Screenshots
-
-Track replay, one selected driver, and the shared session controls:
-
-![Race workspace with track replay and driver inputs](docs/images/race-workspace.png)
-
-Completed lap timing and input comparison within the same workspace:
-
-![Completed lap comparison and distance overlay](docs/images/lap-comparison.png)
-
-Starting grid before recorded race timing begins:
-
-![Starting grid with intervals and gaps left blank](docs/images/starting-grid.png)
-
 ## Run
 
 Install **Python 3.11** and **Node.js 24 LTS**, then open a terminal in this folder:
@@ -115,7 +97,7 @@ small cached Jolpica metadata, with blank intervals and gaps. Grid labels give
 way to recorded lap/sector observations as timing arrives. Missing grid entries
 remain unknown; a grid outage does not block replay. Rewinding to the start
 restores the grid and clears race gaps.
-Qualifying does not show race standings. See [timing details](docs/RACE_TIMING.md).
+Qualifying does not show race standings.
 
 ## Engineering view
 
@@ -163,7 +145,6 @@ GitHub Actions runs locked setup, Python/frontend tests, and an offline browser
 smoke test on pushes and pull requests. Check the repository's **Actions** tab
 for results. Uploading the source does not host the running Python application.
 
-See [GitHub setup](docs/GITHUB_SETUP.md) for cloning and contributing changes.
 Downloaded data, `.venv`, `node_modules`, builds, browser profiles, and caches are
 excluded from Git. A fresh checkout needs no initial FastF1 import.
 
@@ -189,8 +170,6 @@ Legacy `raceos ingest`, `import`, and `prepare-replay` commands are still availa
 for reference work. They are not the dashboard's remote loading path.
 
 ## Edit and verify
-
-See [the code guide](docs/CODE_GUIDE.md) for the data flow and file responsibilities.
 
 ```powershell
 npm --prefix frontend run dev
