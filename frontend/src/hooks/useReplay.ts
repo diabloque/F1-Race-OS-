@@ -54,21 +54,18 @@ export function useReplay(sessionId: string, revision: number) {
   // Await each snapshot so delayed requests cannot overtake a seek or driver change.
   useEffect(() => {
     if (!catalog || catalog.session_id !== sessionId || !driverNumber) return;
-    const controller = new AbortController(),
-      anchor = clock.current,
-      started = performance.now();
+    const metadata = catalog;
+    const controller = new AbortController();
+    const anchor = clock.current;
+    const started = performance.now();
     let timer: ReturnType<typeof setTimeout> | undefined;
     let bufferedMs = 0;
     async function tick() {
-      const metadata = catalog!;
-      const seconds = playing
-        ? advanceTime(
-            anchor,
-            (performance.now() - started - bufferedMs) / 1000,
-            speed,
-            metadata.duration_s,
-          )
-        : clock.current;
+      let seconds = clock.current;
+      if (playing) {
+        const realSeconds = (performance.now() - started - bufferedMs) / 1000;
+        seconds = advanceTime(anchor, realSeconds, speed, metadata.duration_s);
+      }
       const at = new Date(Date.parse(metadata.start_utc) + seconds * 1000).toISOString();
       const requested = performance.now();
       const buffering = setTimeout(() => {
