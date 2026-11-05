@@ -21,13 +21,6 @@ export interface Driver {
   telemetry_available: boolean;
   telemetry_samples: number | null;
 }
-export interface Lap {
-  source: Source;
-  driver_number: number;
-  lap_number: number;
-  lap_duration_s: number | null;
-  lap_start_utc: string | null;
-}
 export interface Sample {
   source: Source;
   driver_number: number;
