@@ -124,8 +124,8 @@ export function advanceTime(anchor: number, realSeconds: number, speed: number, 
 }
 export function clockLabel(seconds: number): string {
   const total = Math.max(0, Math.floor(seconds * 1000));
-  const hours = Math.floor(total / 3600000),
-    minutes = Math.floor(total / 60000) % 60;
+  const hours = Math.floor(total / 3600000);
+  const minutes = Math.floor(total / 60000) % 60;
   const remainder = Math.floor(total / 1000) % 60;
   return `${hours ? `${hours}:` : ''}${String(minutes).padStart(2, '0')}:${String(remainder).padStart(2, '0')}.${String(total % 1000).padStart(3, '0')}`;
 }
@@ -138,15 +138,15 @@ export interface TrackLayout {
   offsetY: number;
 }
 export function fitTrack(points: Point[]): TrackLayout {
-  const xs = points.map((point) => point.x),
-    ys = points.map((point) => point.y);
+  const xs = points.map((point) => point.x);
+  const ys = points.map((point) => point.y);
   const rotate = Math.max(...ys) - Math.min(...ys) > Math.max(...xs) - Math.min(...xs);
   const horizontal = points.map((point) => (rotate ? point.y : point.x));
   const vertical = points.map((point) => (rotate ? -point.x : point.y));
-  const minX = Math.min(...horizontal),
-    minY = Math.min(...vertical);
-  const width = Math.max(1, Math.max(...horizontal) - minX),
-    height = Math.max(1, Math.max(...vertical) - minY);
+  const minX = Math.min(...horizontal);
+  const minY = Math.min(...vertical);
+  const width = Math.max(1, Math.max(...horizontal) - minX);
+  const height = Math.max(1, Math.max(...vertical) - minY);
   const scale = Math.min(840 / width, 450 / height);
   return {
     rotate,
@@ -158,8 +158,8 @@ export function fitTrack(points: Point[]): TrackLayout {
   };
 }
 export function project(point: Point, layout: TrackLayout): Point {
-  const horizontal = layout.rotate ? point.y : point.x,
-    vertical = layout.rotate ? -point.x : point.y;
+  const horizontal = layout.rotate ? point.y : point.x;
+  const vertical = layout.rotate ? -point.x : point.y;
   return {
     x: layout.offsetX + (horizontal - layout.minX) * layout.scale,
     y: 600 - layout.offsetY - (vertical - layout.minY) * layout.scale,
