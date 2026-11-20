@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { lapTime } from '../data';
 import { DriverPanel } from './DriverPanel';
 import type { useReplay } from '../hooks/useReplay';
@@ -19,6 +20,14 @@ export function ReplayWorkspace({
   onComparison: () => void;
 }) {
   const { catalog, frame, driverNumber, track } = replay;
+  const [driverOpen, setDriverOpen] = useState(false);
+  useEffect(() => {
+    setDriverOpen(false);
+  }, [sessionId]);
+  function followDriver(number: number) {
+    replay.chooseDriver(number);
+    setDriverOpen(true);
+  }
   const driver = catalog?.drivers.find((driver) => driver.number === driverNumber),
     car = frame?.drivers.find((car) => car.number === driverNumber);
   const sample = car?.telemetry,
@@ -62,7 +71,7 @@ export function ReplayWorkspace({
                 cars={frame?.drivers ?? []}
                 trail={sameFocus ? frame.trail : []}
                 focus={driverNumber}
-                onFocus={replay.chooseDriver}
+                onFocus={followDriver}
               />
             ) : (
               <Blank
@@ -115,11 +124,42 @@ export function ReplayWorkspace({
                   ) || undefined
                 }
                 focus={driverNumber}
-                onFocus={replay.chooseDriver}
+                onFocus={followDriver}
               />
             )}
           </div>
-          <DriverPanel driver={driver} car={car} at={frame?.at_utc} />
+          <div className="driver-hud">
+            {!driverOpen ? (
+              <button
+                type="button"
+                className="driver-hud-card"
+                onClick={() => setDriverOpen(true)}
+                aria-expanded="false"
+                aria-controls="driver-hud-details"
+              >
+                <span className="tiny-label">FOLLOWING DRIVER</span>
+                <strong>
+                  {driver?.code ?? '--'} <small>#{driver?.number ?? '--'}</small>
+                </strong>
+                <span>{driver?.name ?? 'Select a car on the track'}</span>
+                <span className="driver-hud-open">
+                  OPEN DRIVER PANEL <b>+</b>
+                </span>
+              </button>
+            ) : (
+              <div id="driver-hud-details" className="driver-hud-expanded">
+                <button
+                  type="button"
+                  className="driver-hud-close"
+                  onClick={() => setDriverOpen(false)}
+                  aria-label="Close driver panel"
+                >
+                  ?
+                </button>
+                <DriverPanel driver={driver} car={car} at={frame?.at_utc} />
+              </div>
+            )}
+          </div>
         </div>
         <ReplayControls
           elapsed={replay.elapsed}
