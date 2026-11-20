@@ -106,6 +106,18 @@ export function ReplayWorkspace({
           onSeek={replay.seek}
           onPlay={replay.togglePlay}
           onSpeed={replay.setSpeed}
+          eventMarks={(frame?.race_control ?? [])
+            .filter((message) => /safety car|red flag|yellow flag|pit lane/i.test(message.message))
+            .map((message) => ({
+              id: message.id,
+              seconds:
+                (Date.parse(message.timestamp_utc) - Date.parse(catalog?.start_utc ?? '')) / 1000,
+              message: message.message,
+            }))}
+          lapMarks={(driver?.laps ?? []).map((lap) => ({
+            lap: lap.lap_number,
+            seconds: (Date.parse(lap.start_utc) - Date.parse(catalog?.start_utc ?? '')) / 1000,
+          }))}
         />
         <div className="replay-footnote">
           TracingInsights prepared replay. Missing or stale measurements stay unknown; lap results

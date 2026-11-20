@@ -8,6 +8,8 @@ interface Props {
   onSeek: (value: number) => void;
   onPlay: () => void;
   onSpeed: (value: number) => void;
+  lapMarks: { lap: number; seconds: number }[];
+  eventMarks: { id: number; seconds: number; message: string }[];
 }
 export function ReplayControls({
   elapsed,
@@ -18,6 +20,8 @@ export function ReplayControls({
   onSeek,
   onPlay,
   onSpeed,
+  lapMarks,
+  eventMarks,
 }: Props) {
   return (
     <div className="replay-controls">
@@ -99,8 +103,44 @@ export function ReplayControls({
         disabled={disabled}
         onChange={(event) => onSeek(Number(event.target.value))}
       />
+      <div className="timeline-marks" aria-label="Recorded lap starts">
+        {lapMarks
+          .filter((mark) => mark.seconds >= 0 && mark.seconds <= elapsed && duration > 0)
+          .map((mark) => (
+            <button
+              key={mark.lap}
+              type="button"
+              className="timeline-mark"
+              style={{ left: `${(mark.seconds / duration) * 100}%` }}
+              onClick={() => onSeek(mark.seconds)}
+              aria-label={`Jump to lap ${mark.lap}`}
+              title={`Lap ${mark.lap}`}
+            />
+          ))}
+      </div>
+      <div className="timeline-events" aria-label="Recorded race control events">
+        {eventMarks
+          .filter(
+            (mark) =>
+              mark.seconds >= 0 &&
+              mark.seconds <= elapsed &&
+              mark.seconds <= duration &&
+              duration > 0,
+          )
+          .map((mark) => (
+            <button
+              key={mark.id}
+              type="button"
+              className="timeline-event"
+              style={{ left: `${(mark.seconds / duration) * 100}%` }}
+              onClick={() => onSeek(mark.seconds)}
+              aria-label={`Jump to race control event: ${mark.message}`}
+              title={mark.message}
+            />
+          ))}
+      </div>
       <div className="timeline-hints">
-        <span>Seek anywhere - scrubbing pauses playback</span>
+        <span>Lap starts and race-control events ? scrubbing pauses playback</span>
         <span>{playing ? 'PLAYING' : 'PAUSED'}</span>
       </div>
     </div>

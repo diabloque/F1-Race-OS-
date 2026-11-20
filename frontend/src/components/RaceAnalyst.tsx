@@ -69,7 +69,7 @@ export function RaceAnalyst({
     <section className="panel analyst-panel" aria-label="AI race analyst">
       <div className="panel-heading">
         <div>
-          <h2>AI race analyst</h2>
+          <h2>Ask RaceOS</h2>
           <p>Ask about the session at the current replay time.</p>
         </div>
       </div>
@@ -80,6 +80,17 @@ export function RaceAnalyst({
             RaceOS folder, then refresh this page.
           </p>
         )}
+        <div className="analyst-suggestions" aria-label="Suggested questions">
+          {[
+            'Summarize the race so far',
+            'Compare the fastest completed laps',
+            'What is happening with tyres?',
+          ].map((suggestion) => (
+            <button key={suggestion} type="button" onClick={() => setQuestion(suggestion)}>
+              {suggestion}
+            </button>
+          ))}
+        </div>
         <form onSubmit={ask}>
           <label htmlFor="analyst-question">Your question</label>
           <textarea

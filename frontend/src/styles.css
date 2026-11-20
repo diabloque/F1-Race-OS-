@@ -2002,3 +2002,179 @@ h2 {
   overflow-wrap: anywhere;
   font-size: 11px;
 }
+
+/* Race workspace: restrained pit-wall styling. */
+:root {
+  --accent: #ff625e;
+  --signal: #65dce3;
+}
+body {
+  background: #080e16;
+}
+.sidebar {
+  background: linear-gradient(180deg, #111d29 0%, #0b121c 75%);
+  border-right-color: #2b3f4d;
+}
+.brand img {
+  filter: drop-shadow(0 0 9px #ff625e55);
+}
+.brand strong {
+  letter-spacing: -1.1px;
+}
+.workspace-label,
+.tiny-label,
+.eyebrow {
+  color: #8da9bc;
+}
+.nav-item.active {
+  background: linear-gradient(90deg, #ff625e1e, #ff625e09);
+  border-color: #ff625e55;
+}
+.topbar {
+  background: #0d1621;
+  border-bottom: 1px solid #263a49;
+}
+.page-content {
+  background: radial-gradient(ellipse at 65% 0%, #17324336, transparent 38%);
+}
+.page-title h1 {
+  letter-spacing: -0.035em;
+}
+.panel,
+.session-controls {
+  border-color: #304454;
+  background: linear-gradient(145deg, #15212e, #101923 70%);
+  box-shadow: 0 12px 30px #0003;
+}
+.panel-heading {
+  border-bottom-color: #304454;
+}
+.panel-heading h2 {
+  font-size: 15px;
+  letter-spacing: 0.01em;
+}
+.track-workspace {
+  overflow: hidden;
+  border-top: 2px solid #65dce3;
+}
+.track-main {
+  background: radial-gradient(ellipse at center, #1a33433d, #0b1520 75%);
+}
+.track-canvas svg {
+  filter: drop-shadow(0 0 10px #54d8dc16);
+}
+.selected-car {
+  filter: drop-shadow(0 0 6px #71e7efaa);
+}
+.track-legend {
+  background: #142432b8;
+  border-color: #385362;
+}
+.focused-driver-heading {
+  background: linear-gradient(110deg, #203a4a, #14212e);
+}
+.focused-car-stats > div:first-child {
+  grid-column: span 2;
+}
+.focused-car-stats > div:first-child strong {
+  font-size: 38px;
+  letter-spacing: -0.04em;
+}
+.focused-car-stats strong,
+.playback-clock strong,
+.race-timing-table {
+  font-variant-numeric: tabular-nums;
+}
+.pedal-meter i {
+  box-shadow: 0 0 12px #66d7b066;
+}
+.replay-controls {
+  background: #0d1925;
+}
+.play-button {
+  box-shadow: 0 0 18px #f7605630;
+}
+.timeline-marks {
+  position: relative;
+  height: 10px;
+  margin: -3px 0 0;
+}
+.timeline-mark {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  transform: translateX(-50%);
+  border: 1px solid #8ce7ea;
+  border-radius: 50%;
+  background: #173442;
+}
+.timeline-mark:hover,
+.timeline-mark:focus-visible {
+  background: #8ce7ea;
+}
+.race-timing-table tr.timing-followed {
+  background: #65dce312;
+}
+.analyst-panel {
+  border-left: 2px solid #65dce3;
+}
+.analyst-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+.analyst-suggestions button {
+  border: 1px solid #3b5665;
+  border-radius: 4px;
+  padding: 7px 10px;
+  background: #172a38;
+  color: #b6e3e6;
+  font-size: 11px;
+}
+.analyst-suggestions button:hover {
+  background: #23404d;
+}
+.analyst-body textarea:focus-visible {
+  outline-color: #65dce3;
+  border-color: #65dce3;
+}
+.analyst-result summary {
+  color: #8de2e5;
+  cursor: pointer;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .race-timing-table tr,
+  .analyst-suggestions button {
+    transition: background-color 0.2s ease;
+  }
+}
+@media (max-width: 760px) {
+  .focused-car-stats > div:first-child strong {
+    font-size: 32px;
+  }
+  .analyst-suggestions {
+    gap: 6px;
+  }
+}
+
+.timeline-events {
+  position: relative;
+  height: 8px;
+  margin-top: -3px;
+}
+.timeline-event {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  transform: translateX(-50%) rotate(45deg);
+  border: 1px solid #ffda8c;
+  background: #c58d36;
+}
+.timeline-event:hover,
+.timeline-event:focus-visible {
+  background: #fff0c7;
+}
