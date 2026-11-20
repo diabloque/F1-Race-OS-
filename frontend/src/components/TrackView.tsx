@@ -79,7 +79,7 @@ export function TrackView({ track, cars, trail, focus, onFocus }: Props) {
       <svg viewBox="0 0 1000 600" role="group" aria-label="Circuit track">
         <defs>
           <pattern id="track-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#aeb6b4" strokeWidth="0.6" />
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#263344" strokeWidth="0.6" />
           </pattern>
         </defs>
         <rect width="1000" height="600" fill="url(#track-grid)" opacity="0.36" />
@@ -93,7 +93,7 @@ export function TrackView({ track, cars, trail, focus, onFocus }: Props) {
           points={`${outline} ${outline.split(' ')[0]}`}
           fill="none"
           strokeWidth="20"
-          stroke="#a7adab"
+          stroke="#080d15"
           strokeLinejoin="round"
         />
         <polyline
@@ -101,14 +101,14 @@ export function TrackView({ track, cars, trail, focus, onFocus }: Props) {
           points={`${outline} ${outline.split(' ')[0]}`}
           fill="none"
           strokeWidth="12"
-          stroke="#f5f5ef"
+          stroke="#334155"
           strokeLinejoin="round"
         />
         <polyline
           points={`${outline} ${outline.split(' ')[0]}`}
           fill="none"
           strokeWidth="1"
-          stroke="#737e7d"
+          stroke="#7a8ca3"
           strokeOpacity="0.6"
           strokeLinejoin="round"
         />
@@ -141,11 +141,6 @@ export function TrackView({ track, cars, trail, focus, onFocus }: Props) {
         {visibleCars.map((car) => {
           const position = car.position!,
             point = project(position, layout);
-          const direction = project(
-            { x: position.x + (position.dx ?? 1), y: position.y + (position.dy ?? 0) },
-            layout,
-          );
-          const angle = (Math.atan2(direction.y - point.y, direction.x - point.x) * 180) / Math.PI;
           const color = driverColor(car),
             selected = car.number === focus;
           return (
@@ -182,16 +177,22 @@ export function TrackView({ track, cars, trail, focus, onFocus }: Props) {
                   strokeWidth="1.5"
                 />
               )}
-              <g transform={`rotate(${angle})`}>
-                <rect x="-8" y="-6" width="4" height="12" rx="1" fill="#04080d" />
-                <rect x="5" y="-6" width="4" height="12" rx="1" fill="#04080d" />
-                <path
-                  d="M-11-3 L4-4 L13 0 L4 4 L-11 3Z"
-                  fill={color}
-                  stroke="#edf4ff"
-                  strokeWidth={selected ? '1.5' : '0.7'}
-                />
-              </g>
+              <circle
+                r={selected ? 13 : 10}
+                fill={color}
+                opacity="0.28"
+                style={{ filter: `drop-shadow(0 0 7px ${color})` }}
+              />
+              <circle
+                r={selected ? 9 : 7}
+                fill={color}
+                stroke="#eef5ff"
+                strokeWidth={selected ? 2 : 1}
+                style={{ filter: `drop-shadow(0 0 4px ${color})` }}
+              />
+              <text className="car-number" x="0" y="0">
+                {car.number}
+              </text>
               <text className="driver-map-label" x="0" y="-28" textAnchor="middle" fill={color}>
                 {car.code}
               </text>
