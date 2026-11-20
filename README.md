@@ -30,6 +30,10 @@ React frontend; a separate Node server is unnecessary for normal use.
 `.venv/Scripts/python.exe -m raceos serve` starts just the server on Windows;
 use `.venv/bin/python` on macOS/Linux. Restart after backend edits.
 
+## AI race analyst
+
+RaceOS can use your Gemini API key to investigate the current replay and compare completed laps. Get a key from [Google AI Studio](https://aistudio.google.com/apikey), create `data/gemini-key.txt` in the project folder, and paste the key into that file. Refresh the app. The file is ignored by Git; never commit your key. Alternatively set `GEMINI_API_KEY` before starting the server. Gemini receives your question and the selected session data; its free tier has usage limits. Set `RACEOS_GEMINI_MODEL` to select a model available to your key.
+
 ## Open a session
 
 Use the single selection bar to choose a year, Grand Prix, and **Race** or

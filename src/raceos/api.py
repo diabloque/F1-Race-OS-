@@ -20,6 +20,7 @@ from raceos.providers.tracinginsights import TracingInsights
 from raceos.remote_cache import RemoteUnavailable
 from raceos.remote_replay import RemoteReplay
 from raceos.analysis import PerformanceAnalysis, LapComparison
+from raceos import analyst
 
 Item = TypeVar("Item")
 
@@ -93,6 +94,12 @@ class Health(BaseModel):
     cache: dict[str, Any] | None = None
 
 
+class AnalystQuestion(BaseModel):
+    at: AwareDatetime
+    driver_number: StrictInt = Field(gt=0)
+    question: str = Field(min_length=1, max_length=1200)
+
+
 class OpenSession(BaseModel):
     year: StrictInt = Field(ge=2018, le=2100)
     round: StrictInt = Field(gt=0, le=30)
@@ -142,6 +149,23 @@ def create_app(
     @application.exception_handler(RemoteUnavailable)
     async def remote_error(request, error):
         return JSONResponse(status_code=503, content={"detail": str(error)})
+
+    @application.get("/api/analyst/status", tags=["AI analyst"])
+    def analyst_status():
+        return {"configured": analyst.configured()}
+
+    @application.post("/api/sessions/{session_id}/analyst", tags=["AI analyst"])
+    def ask_analyst(session_id: str, request: AnalystQuestion, response: Response):
+        response.headers["Cache-Control"] = "no-store"
+        return analyst.ask(
+            provider,
+            remote,
+            analysis,
+            session_id,
+            request.at,
+            request.driver_number,
+            request.question.strip(),
+        )
 
     @application.get("/api/library", tags=["Remote data"])
     def remote_library():
