@@ -2270,3 +2270,78 @@ body {
     margin: 10px;
   }
 }
+
+/* Keep the circuit and timing tower together on desktop. */
+@media (min-width: 1101px) {
+  .race-track-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(245px, 1fr);
+    grid-template-rows: auto auto;
+    align-content: start;
+  }
+  .race-track-main > .track-canvas,
+  .race-track-main > .blank {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .race-track-main > .map-caption {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .race-track-main > .race-timing {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin: 10px;
+    align-self: start;
+  }
+  .race-track-main .track-canvas svg {
+    min-height: 0;
+    max-height: min(36vh, 340px);
+  }
+  .race-track-main .track-legend {
+    margin: 10px 10px 0;
+    padding: 9px 10px;
+  }
+  .race-track-main .track-legend-heading {
+    margin-bottom: 5px;
+  }
+  .race-track-main .track-legend-items {
+    gap: 6px;
+  }
+  .race-track-main .track-legend-items small {
+    display: none;
+  }
+  .race-track-main .track-display-options {
+    padding-block: 6px;
+  }
+  .race-track-main .race-timing .panel-heading {
+    padding: 11px 12px;
+  }
+  .race-track-main .race-timing .panel-heading p {
+    display: none;
+  }
+  .race-track-main .timing-wait {
+    padding: 7px 12px;
+    margin: 0;
+  }
+  .race-track-main .race-timing-scroll {
+    max-height: min(37vh, 350px);
+  }
+  .race-track-main .race-timing-table th {
+    padding: 7px 6px;
+  }
+  .race-track-main .race-timing-table td {
+    padding: 4px 6px;
+    font-size: 11px;
+  }
+  .race-track-main .race-timing-table button {
+    padding: 2px 0 2px 7px;
+  }
+  .race-track-main .race-timing-table button small {
+    font-size: 8px;
+  }
+  .race-track-main .timing-explanation {
+    padding: 7px 12px;
+    margin: 0;
+  }
+}
