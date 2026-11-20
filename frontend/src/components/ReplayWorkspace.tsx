@@ -55,7 +55,7 @@ export function ReplayWorkspace({
           </div>
         </div>
         <div className="track-layout">
-          <div className={sessionName === 'Race' ? 'track-main race-track-main' : 'track-main'}>
+          <div className="track-main">
             {track?.points.length ? (
               <TrackView
                 track={track}
