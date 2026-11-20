@@ -32,7 +32,18 @@ use `.venv/bin/python` on macOS/Linux. Restart after backend edits.
 
 ## AI race analyst
 
-RaceOS can use your Gemini API key to investigate the current replay and compare completed laps. Get a key from [Google AI Studio](https://aistudio.google.com/apikey), create `data/gemini-key.txt` in the project folder, and paste the key into that file. Refresh the app. The file is ignored by Git; never commit your key. Alternatively set `GEMINI_API_KEY` before starting the server. Gemini receives your question and the selected session data; its free tier has usage limits. Set `RACEOS_GEMINI_MODEL` to select a model available to your key.
+The AI analyst can investigate the current replay and compare completed laps.
+**Each person needs their own Gemini API key** to use the analyst. The rest of
+RaceOS works without one.
+
+1. Get your own key from [Google AI Studio](https://aistudio.google.com/apikey).
+2. Create `data/gemini-key.txt` in the project folder and paste your key into it.
+3. Save the file and refresh the app.
+
+The key file is ignored by Git; never commit or share your key. Alternatively,
+set `GEMINI_API_KEY` before starting the server. Gemini receives your question
+and selected session data; the free tier has usage limits. Set
+`RACEOS_GEMINI_MODEL` to choose a model available to your key.
 
 ## Open a session
 
