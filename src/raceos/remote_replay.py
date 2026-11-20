@@ -47,11 +47,7 @@ class RemoteReplay:
             "start_utc": timestamp(session["begin"]),
             "end_utc": timestamp(session["end"]),
             "duration_s": (session["end"] - session["begin"]).total_seconds(),
-            "initial_utc": (
-                preferred["laps"][0]["start_utc"]
-                if preferred["laps"] and session["name"] != "Race"
-                else timestamp(session["begin"])
-            ),
+            "initial_utc": timestamp(session["begin"]),
             "initial_driver_number": preferred["number"],
             "drivers": drivers,
             "freshness_limit_s": FRESH_SECONDS,

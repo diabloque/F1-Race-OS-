@@ -74,7 +74,9 @@ export function ReplayWorkspace({
             )}
             <div className="map-caption">
               <span>
-                {track?.points.length ? (
+                {!frame && replay.loading ? (
+                  'Loading car positions...'
+                ) : track?.points.length ? (
                   <>
                     <i className="status-dot" />
                     {onTrack} cars located
@@ -85,7 +87,9 @@ export function ReplayWorkspace({
               </span>
               <span>
                 {track?.points.length
-                  ? 'Recorded positions - approximate'
+                  ? frame && onTrack === 0
+                    ? 'No car positions recorded at this moment'
+                    : 'Recorded positions - approximate'
                   : 'Driver inputs and timing available'}
               </span>
               <time data-testid="replay-utc">

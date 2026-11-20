@@ -593,3 +593,10 @@ def test_race_initial_clock_starts_at_session_begin_not_a_late_driver_start(remo
     session = provider.get(sid)
     session["laps"][4][0]["lap_start_utc"] = "2025-09-06T14:00:01Z"
     assert replay.catalog(sid)["initial_utc"] == "2025-09-06T14:00:00.000000Z"
+
+
+def test_qualifying_starts_at_first_recorded_lap_not_preferred_driver(remote):
+    provider, replay, sid, session = opened(remote)
+    session["laps"][4][0]["lap_start_utc"] = "2025-09-06T14:00:01Z"
+    assert session["name"] == "Qualifying"
+    assert replay.catalog(sid)["initial_utc"] == "2025-09-06T14:00:00.000000Z"
