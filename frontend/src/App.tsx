@@ -5,7 +5,6 @@ import { Blank, Icon } from './components/Common';
 import { SessionControls } from './components/SessionControls';
 import { ReplayWorkspace } from './components/ReplayWorkspace';
 import { PerformanceAnalysis } from './components/PerformanceAnalysis';
-import { RaceAnalyst } from './components/RaceAnalyst';
 type Screen = 'replay' | 'sessions';
 export default function App() {
   const [screen, setScreen] = useState<Screen>('replay');
@@ -156,9 +155,12 @@ export default function App() {
             </div>
           ) : (
             <>
-              <ReplayWorkspace replay={replay} sessionName={session?.name} />
+              <ReplayWorkspace
+                replay={replay}
+                sessionName={session?.name}
+                sessionId={archive.sessionId}
+              />
               <PerformanceAnalysis sessionId={archive.sessionId} replay={replay} />
-              <RaceAnalyst sessionId={archive.sessionId} replay={replay} />
             </>
           )}
           <footer className="page-footer">

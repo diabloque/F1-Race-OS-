@@ -6,12 +6,15 @@ import { ReplayControls } from './ReplayControls';
 import { TrackView } from './TrackView';
 import { RaceTiming } from './RaceTiming';
 import { SessionConditions } from './SessionConditions';
+import { RaceAnalyst } from './RaceAnalyst';
 export function ReplayWorkspace({
   replay,
   sessionName,
+  sessionId,
 }: {
   replay: ReturnType<typeof useReplay>;
   sessionName?: string;
+  sessionId: string;
 }) {
   const { catalog, frame, driverNumber, track } = replay;
   const driver = catalog?.drivers.find((driver) => driver.number === driverNumber),
@@ -109,6 +112,7 @@ export function ReplayWorkspace({
           become visible after completion.
         </div>
       </section>
+      <RaceAnalyst sessionId={sessionId} replay={replay} />
       <div className="bottom-grid">
         <section className="lap-list panel">
           <div className="panel-heading">
