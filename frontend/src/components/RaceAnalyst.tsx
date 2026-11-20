@@ -70,7 +70,7 @@ export function RaceAnalyst({
       <div className="panel-heading">
         <div>
           <h2>Ask RaceOS</h2>
-          <p>Ask about the session at the current replay time.</p>
+          <p>Ask about the whole recorded session, even while replaying an earlier lap.</p>
         </div>
       </div>
       <div className="analyst-body">
@@ -82,9 +82,9 @@ export function RaceAnalyst({
         )}
         <div className="analyst-suggestions" aria-label="Suggested questions">
           {[
-            'Summarize the race so far',
+            'Summarize the race',
             'Compare the fastest completed laps',
-            'What is happening with tyres?',
+            'How did tyre strategy affect the race?',
           ].map((suggestion) => (
             <button key={suggestion} type="button" onClick={() => setQuestion(suggestion)}>
               {suggestion}
@@ -107,9 +107,7 @@ export function RaceAnalyst({
             {busy ? 'Checking race data?' : 'Ask analyst'}
           </button>
         </form>
-        {!replay.frame && (
-          <p>Open a session and move the replay to the moment you want to analyze.</p>
-        )}
+        {!replay.frame && <p>Open a session to ask about the full race or qualifying.</p>}
         {error && (
           <p className="warning-text" role="alert">
             {error}
@@ -118,7 +116,7 @@ export function RaceAnalyst({
         {result && (
           <div className="analyst-result">
             <p className="analyst-answer">{result.answer}</p>
-            <p>Replay time: {result.at_utc}</p>
+            <p>Full session analyzed ? recorded through {result.at_utc}</p>
             <details>
               <summary>Data checked ({result.evidence.length})</summary>
               {result.evidence.map((item, index) => (

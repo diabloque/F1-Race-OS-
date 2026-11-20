@@ -32,7 +32,7 @@ use `.venv/bin/python` on macOS/Linux. Restart after backend edits.
 
 ## AI race analyst
 
-The AI analyst can investigate the current replay and compare completed laps.
+The AI analyst can investigate the full recorded session and compare completed laps, even when the replay is at an earlier point.
 **Each person needs their own Gemini API key** to use the analyst. The rest of
 RaceOS works without one.
 

@@ -1,4 +1,4 @@
-"""Gemini race analyst using the current replay clock and RaceOS tools."""
+"""Gemini race analyst over a complete recorded session."""
 
 import json
 import os
@@ -14,7 +14,7 @@ TOOLS = [
     {
         "type": "function",
         "name": "completed_laps",
-        "description": "List drivers and laps completed by the current replay time.",
+        "description": "List all recorded completed laps for the selected session.",
         "parameters": {"type": "object", "properties": {}},
     },
     {
@@ -32,8 +32,14 @@ TOOLS = [
     },
     {
         "type": "function",
+        "name": "session_summary",
+        "description": "Get each driver's fastest recorded laps, tyre stints and pit events, plus race-control messages for the whole session. Use this for why and strategy questions.",
+        "parameters": {"type": "object", "properties": {}},
+    },
+    {
+        "type": "function",
         "name": "race_context",
-        "description": "Get current race timing, tyres, weather and race-control messages.",
+        "description": "Get timing, tyres, weather and recent race-control messages at the end of the recorded session. Timing order is not an official classification.",
         "parameters": {"type": "object", "properties": {}},
     },
 ]
@@ -55,17 +61,90 @@ def api_key():
     return key
 
 
+def session_summary(provider, session, at):
+    """Summarize recorded laps and events without guessing the official result."""
+    drivers = []
+    for driver in session["drivers"]:
+        laps = []
+        for lap in session["laps"].get(driver["number"], []):
+            if lap.get("timing_generated"):
+                continue
+            laps.append(
+                {
+                    key: lap.get(key)
+                    for key in (
+                        "lap_number",
+                        "lap_start_utc",
+                        "lap_end_utc",
+                        "lap_duration_s",
+                        "sector_times_s",
+                        "compound",
+                        "stint",
+                        "fresh_tyres",
+                        "tyre_life_laps",
+                        "pit_in_utc",
+                        "pit_out_utc",
+                    )
+                }
+            )
+        timed = [
+            lap
+            for lap in laps
+            if lap["lap_duration_s"] is not None and lap["lap_duration_s"] > 0
+        ]
+        fastest = sorted(timed, key=lambda lap: lap["lap_duration_s"])[:3]
+        pit_laps = [lap for lap in laps if lap["pit_in_utc"] or lap["pit_out_utc"]]
+        stints = []
+        for lap in laps:
+            if lap["stint"] is not None and not any(
+                item["stint"] == lap["stint"] for item in stints
+            ):
+                stints.append(
+                    {
+                        "stint": lap["stint"],
+                        "compound": lap["compound"],
+                        "first_recorded_lap": lap["lap_number"],
+                        "fresh_tyres": lap["fresh_tyres"],
+                    }
+                )
+        drivers.append(
+            {
+                "number": driver["number"],
+                "code": driver["code"],
+                "name": driver["name"],
+                "team": driver.get("team"),
+                "recorded_laps": len(laps),
+                "fastest_laps": fastest,
+                "pit_laps": pit_laps,
+                "tyre_stints": stints,
+            }
+        )
+    conditions = environment(session, provider.context(session), at)
+    return {
+        "drivers": drivers,
+        "starting_grid": session.get("starting_grid", {}),
+        "race_control": conditions["race_control"],
+        "race_control_status": conditions["race_control_status"],
+        "note": "Race-control messages are limited to the latest 50. Missing pit events, lap times and results remain unknown. Starting grid is not race classification.",
+    }
+
+
 def ask(provider, remote, analysis, sid, at, driver, question, send=None):
-    session, at = analysis.session_at(sid, at)
+    session, replay_at = analysis.session_at(sid, at)
+    at = session["end"]
     if driver not in [item["number"] for item in session["drivers"]]:
         raise DataError("Choose a driver in this session.")
     key = api_key()
     history = [{"type": "user_input", "content": question}]
     system = (
         "You are a concise F1 race analyst. Use the available tools before making claims about this session. "
-        "Only use observations at the selected replay clock. Do not invent causes, corner names, positions, or future results. "
-        "Mention missing data and coverage. Lap deltas are B minus A. Prepared positions are approximate. "
-        f"Session: {session['year']} {session['location']} {session['name']}; replay time: {at.isoformat()}; followed driver number: {driver}."
+        "You may analyze the full recorded session independently of the replay clock. "
+        "Use session_summary for overall race and strategy questions and compare_laps for detailed input comparisons. "
+        "Separate recorded facts from possible explanations and say when the data cannot establish the reason. "
+        "Never present sector-based timing order as official final classification; it excludes penalties and may be incomplete. "
+        "Do not invent corner names, results, pit stops or causes. Pit-in and pit-out values are UTC timestamps, not durations; never claim a pit-stop duration unless explicitly calculated from a matched entry and exit, and that is pit-lane time, not stationary time. Recorded lap counts are not necessarily completed laps. Do not assume a tyre change from a pit visit. Mention missing data and coverage. "
+        "Lap deltas are B minus A. Prepared positions are approximate. "
+        f"Session: {session['year']} {session['location']} {session['name']}; recorded session end: {at.isoformat()}; replay time when asked: {replay_at.isoformat()}; followed driver number: {driver}."
     )
     evidence = []
     truststore.inject_into_ssl()
@@ -125,7 +204,12 @@ def ask(provider, remote, analysis, sid, at, driver, question, send=None):
             answer = "\n".join(text).strip()
             if not answer:
                 raise DataError("Gemini did not return an answer. Try again.")
-            return {"answer": answer, "evidence": evidence, "at_utc": at.isoformat()}
+            return {
+                "answer": answer,
+                "evidence": evidence,
+                "at_utc": at.isoformat(),
+                "scope": "full_session",
+            }
         if len(calls) > 4:
             raise DataError(
                 "The analyst requested too many data checks. Try a narrower question."
@@ -147,6 +231,8 @@ def ask(provider, remote, analysis, sid, at, driver, question, send=None):
                     data["distance_alignment"] = {
                         k: v for k, v in alignment.items() if k != "points"
                     }
+                elif name == "session_summary":
+                    data = session_summary(provider, session, at)
                 elif name == "race_context":
                     frame = remote.snapshot(sid, at, driver)
                     data = {

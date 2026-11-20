@@ -14,6 +14,7 @@ class Analysis:
             "location": "Monza",
             "name": "Race",
             "drivers": [{"number": 4}],
+            "end": AT,
         }, at
 
     def choices(self, sid, at):
@@ -75,7 +76,7 @@ def test_agent_calls_tools_and_returns_evidence(monkeypatch):
     assert requests[0]["store"] is False
 
 
-def test_agent_does_not_reveal_future_laps(monkeypatch):
+def test_agent_rejects_nonexistent_laps(monkeypatch):
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     calls = []
 
@@ -124,3 +125,60 @@ def test_missing_key_is_explained(monkeypatch, tmp_path):
     monkeypatch.setattr(analyst, "KEY_FILE", tmp_path / "missing")
     with pytest.raises(DataError, match="gemini-key.txt"):
         analyst.ask(None, None, Analysis(), "ti-test", AT, 4, "Hello")
+
+
+def test_full_session_tools_use_end_even_when_replay_is_earlier(monkeypatch):
+    from datetime import timedelta
+
+    monkeypatch.setenv("GEMINI_API_KEY", "test-key")
+    end = AT + timedelta(hours=2)
+    observed = []
+
+    class FullSessionAnalysis(Analysis):
+        def session_at(self, sid, at):
+            session, at = super().session_at(sid, at)
+            session["end"] = end
+            return session, at
+
+        def choices(self, sid, at):
+            observed.append(at)
+            return {"drivers": [{"number": 4, "laps": [{"lap_number": 50}]}]}
+
+    def send(url, **kwargs):
+        if not observed:
+            return Response(
+                {
+                    "steps": [
+                        {
+                            "type": "function_call",
+                            "name": "completed_laps",
+                            "id": "one",
+                            "arguments": {},
+                        }
+                    ]
+                }
+            )
+        return Response(
+            {
+                "steps": [
+                    {
+                        "type": "model_output",
+                        "content": [{"type": "text", "text": "Lap 50 was completed."}],
+                    }
+                ]
+            }
+        )
+
+    result = analyst.ask(
+        None,
+        None,
+        FullSessionAnalysis(),
+        "ti-test",
+        AT,
+        4,
+        "How did the race finish?",
+        send=send,
+    )
+    assert observed == [end]
+    assert result["evidence"][0]["data"]["drivers"][0]["laps"][0]["lap_number"] == 50
+    assert result["scope"] == "full_session"
