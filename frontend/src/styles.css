@@ -2178,3 +2178,493 @@ body {
 .timeline-event:focus-visible {
   background: #fff0c7;
 }
+
+/* Light pit-wall workspace */
+:root {
+  color-scheme: light;
+  color: #111515;
+  background: #e5e6e1;
+  --muted: #667171;
+  --border: #bfc7c2;
+  --panel: #eff0ea;
+  --accent: #ff5328;
+}
+body {
+  background: #e5e6e1;
+  color: #111515;
+}
+.sidebar {
+  width: 180px;
+  padding: 22px 12px;
+  background: #e0e3dc;
+  border-color: #b9c1bb;
+}
+.brand {
+  display: flex;
+  gap: 8px;
+  padding: 4px 8px;
+}
+.brand img {
+  width: 28px;
+  height: 28px;
+  filter: none;
+  background: #111515;
+  padding: 4px;
+}
+.brand strong {
+  color: #111515;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+.brand small {
+  display: none;
+}
+.workspace-label,
+.tiny-label,
+.eyebrow {
+  color: #626d69;
+  font-family: Consolas, monospace;
+  letter-spacing: 0.11em;
+}
+.workspace-label {
+  margin: 45px 8px 14px;
+}
+.nav-item {
+  color: #323b37;
+  border-radius: 0;
+  font:
+    700 11px Consolas,
+    monospace;
+  min-height: 43px;
+}
+.nav-item:hover {
+  background: #d0d6cf;
+  color: #111;
+}
+.nav-item.active {
+  background: #111515;
+  border-color: #111515;
+  color: #fff;
+}
+.nav-marker {
+  background: #ff5328;
+  border-radius: 0;
+  width: 6px;
+  height: 6px;
+}
+.sidebar-archive {
+  background: transparent;
+  border: 1px solid #bcc4bd;
+  border-radius: 0;
+  color: #111;
+}
+.sidebar-archive p,
+.sidebar-archive button {
+  color: #52605b;
+}
+main {
+  margin-left: 180px;
+  width: calc(100% - 180px);
+}
+.topbar {
+  height: 54px;
+  color: #42514b;
+  background: #e9eae4;
+  border-color: #bfc7c2;
+  font:
+    10px Consolas,
+    monospace;
+}
+.topbar strong,
+.api-link {
+  color: #111515;
+}
+.archive-badge {
+  color: #125f45;
+  border-color: #aacbb7;
+  background: #d6ebdc;
+}
+.page-content {
+  background: #e5e6e1;
+  padding-top: 25px;
+}
+.page-title h1 {
+  color: #111515;
+  font-size: 38px;
+  text-transform: uppercase;
+  letter-spacing: -0.045em;
+}
+.page-title p {
+  color: #586560;
+}
+.panel,
+.session-controls {
+  background: #f0f1ec;
+  border: 1px solid #bdc6bf;
+  border-radius: 0;
+  box-shadow: none;
+  color: #111515;
+}
+.session-controls select,
+.session-controls select option,
+.comparison-selections select,
+.speed-control select {
+  color: #151b18;
+  background: #f5f6ef;
+  border-color: #aeb9b0;
+}
+.session-controls label span,
+.session-notice {
+  color: #52645c;
+}
+.panel-heading {
+  border-color: #c5ccc5;
+}
+h2,
+h3,
+.panel-heading h2,
+.workspace-section-heading h2 {
+  color: #121816;
+}
+.panel-heading p,
+.workspace-section-heading p,
+.quality-description,
+.timing-wait,
+.timing-explanation {
+  color: #56655e;
+}
+.track-workspace {
+  border-top: 3px solid #ff5328;
+}
+.track-main {
+  background: #e6e9e2;
+}
+.track-canvas svg {
+  filter: none;
+}
+.track-legend {
+  background: #e9eee8;
+  border-color: #b7c6bb;
+  border-radius: 0;
+}
+.track-legend strong,
+.track-display-options,
+.track-legend-heading strong {
+  color: #273b32;
+}
+.track-legend small,
+.track-legend-heading span {
+  color: #64746d;
+}
+.map-overline,
+.map-watermark {
+  fill: #7f9187;
+}
+.map-caption {
+  background: #e1e6de;
+  color: #4c6056;
+  border-color: #c2ccc3;
+}
+.focused-driver-heading {
+  background: #dce8dd;
+}
+.focused-driver-name strong,
+.focused-car-stats strong,
+.focused-lap-stats strong {
+  color: #111915;
+}
+.focused-driver-heading p,
+.focused-driver-heading small,
+.focused-car-stats > div > span,
+.focused-lap-stats span,
+.focused-lap-stats small {
+  color: #53695d;
+}
+.pedal-input,
+.focused-lap-stats {
+  border-color: #c8d2c9;
+}
+.pedal-heading h3 {
+  color: #17231b;
+}
+.pedal-input p,
+.pedal-scale {
+  color: #5c6d62;
+}
+.brake-states span {
+  color: #4d5c53;
+  border-color: #adbeb1;
+  background: #e6ebe4;
+}
+.brake-states .active-released {
+  color: #12251b;
+  background: #c9e2ce;
+}
+.replay-controls {
+  background: #e1e6de;
+  border-color: #c0c9c0;
+}
+.playback-clock strong {
+  color: #101915;
+}
+.playback-clock span,
+.playback-clock small,
+.speed-control span,
+.timeline-hints {
+  color: #5b6e61;
+}
+.secondary-button,
+.transport-button,
+.replay-state-badge,
+.outline-badge {
+  border-color: #aab8ad;
+  border-radius: 0;
+  background: #e8ede6;
+  color: #1b2b21;
+}
+.secondary-button:hover,
+.transport-button:hover {
+  background: #d3e0d4;
+  color: #111;
+}
+.play-button {
+  background: #131a16;
+  border-color: #131a16;
+  color: #fff;
+  border-radius: 0;
+  box-shadow: none;
+}
+.race-timing-table th,
+.race-timing-table td,
+.lap-row {
+  border-color: #cbd3cb;
+  color: #23342a;
+}
+.race-timing-table button,
+.race-timing-table strong {
+  color: #1b2b21;
+}
+.race-timing-table small {
+  color: #5d7164;
+}
+.race-timing-table tr.timing-followed {
+  background: #d4e8d6;
+}
+.analyst-panel {
+  margin-top: 18px;
+  border-left: 3px solid #ff5328;
+}
+.analyst-toggle,
+.workspace-panel-toggle > button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  background: #edf1e9;
+  border: 0;
+  padding: 18px 22px;
+  color: #121a15;
+}
+.analyst-toggle span,
+.workspace-panel-toggle span {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.analyst-toggle small,
+.workspace-panel-toggle small {
+  font:
+    10px Consolas,
+    monospace;
+  letter-spacing: 0.1em;
+  color: #687b6c;
+}
+.analyst-toggle strong,
+.workspace-panel-toggle strong {
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: -0.025em;
+}
+.analyst-toggle em,
+.workspace-panel-toggle em {
+  font-style: normal;
+  color: #5c6c61;
+  font-size: 12px;
+}
+.analyst-toggle b,
+.workspace-panel-toggle b {
+  font:
+    26px Consolas,
+    monospace;
+  color: #e84c22;
+}
+.analyst-toggle:hover,
+.workspace-panel-toggle > button:hover {
+  background: #dce9dc;
+}
+.workspace-panel-toggle {
+  margin-top: 18px;
+  border: 1px solid #bdc6bf;
+  border-left: 3px solid #ff5328;
+}
+.analyst-body {
+  color: #344b3c;
+}
+.analyst-body textarea {
+  color: #152019;
+  background: #fafbf6;
+  border-color: #a5b6a9;
+}
+.analyst-suggestions button {
+  color: #205639;
+  background: #e0eee0;
+  border-color: #adcbb1;
+  border-radius: 0;
+}
+.analyst-suggestions button:hover {
+  background: #cbe2cd;
+}
+.analyst-answer {
+  color: #17251b;
+}
+.analyst-result summary {
+  color: #186540;
+}
+.session-tile,
+.comparison-picker,
+.comparison-track,
+.comparison-results {
+  background: #eff2eb;
+  color: #132019;
+  border-color: #bfcac0;
+}
+.session-tile strong,
+.session-tile-type,
+.comparison-picker strong {
+  color: #16251b;
+}
+.blank {
+  color: #475a4e;
+}
+.blank h3 {
+  color: #1a2c20;
+}
+.page-footer {
+  color: #64766a;
+  border-color: #c1ccc3;
+}
+[hidden] {
+  display: none !important;
+}
+@media (max-width: 1100px) and (min-width: 761px) {
+  .sidebar {
+    width: 160px;
+  }
+  main {
+    margin-left: 160px;
+    width: calc(100% - 160px);
+  }
+}
+@media (max-width: 760px) {
+  .sidebar {
+    width: 100%;
+    padding: 14px 16px;
+  }
+  main {
+    margin-left: 0;
+    width: 100%;
+  }
+  .page-title h1 {
+    font-size: 27px;
+  }
+  .topbar {
+    padding-inline: 16px;
+  }
+  .analyst-toggle,
+  .workspace-panel-toggle > button {
+    padding: 15px;
+  }
+}
+
+/* Readable telemetry and conditions on the light surfaces. */
+.track-sidebar,
+.focused-driver-panel {
+  background: #edf1ea;
+  color: #17251b;
+  border-color: #bcc9be;
+}
+.focused-driver-panel h3,
+.tyre-compound strong,
+.tyre-details dd,
+.tyre-details strong,
+.focused-lap-stats strong {
+  color: #17251b;
+}
+.tyre-compound small,
+.tyre-details dt,
+.tyre-details small {
+  color: #53695d;
+}
+.tyre-stint {
+  border-color: #c8d2c9;
+}
+.weather-readings dd,
+.weather-readings dd small,
+.race-control-messages p,
+.race-control-messages small {
+  color: #263d2e;
+}
+.weather-readings dt,
+.race-control-messages time,
+.condition-note,
+.no-completed-laps {
+  color: #536e5c;
+}
+.race-control-messages li {
+  border-color: #c8d2c9;
+}
+.race-timing-table thead {
+  background: #dce5da;
+}
+.race-timing-table th {
+  color: #465d4d;
+}
+.session-controls-form {
+  background: #e6ebe3;
+}
+.session-controls-form > label,
+.session-open {
+  border-color: #c2cec3;
+}
+.session-controls select {
+  color: #1a2a1e;
+}
+.comparison-selections fieldset,
+.comparison-table,
+.comparison-track-map,
+.comparison-distance-readout {
+  color: #243a2c;
+  border-color: #becbbf;
+}
+.comparison-selections legend,
+.comparison-selections label span,
+.comparison-distance-readout span {
+  color: #536e5c;
+}
+.comparison-distance-readout strong,
+.comparison-distance-readout small {
+  color: #203c29;
+}
+
+.session-controls label,
+.session-open {
+  background: #e8ede5;
+}
+.race-timing-table thead tr {
+  background: #dce5da;
+}
+.race-timing-table thead th {
+  color: #354d3c;
+}

@@ -79,7 +79,7 @@ export function TrackView({ track, cars, trail, focus, onFocus }: Props) {
       <svg viewBox="0 0 1000 600" role="group" aria-label="Circuit track">
         <defs>
           <pattern id="track-grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#263344" strokeWidth="0.6" />
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#aeb6b4" strokeWidth="0.6" />
           </pattern>
         </defs>
         <rect width="1000" height="600" fill="url(#track-grid)" opacity="0.36" />
@@ -93,7 +93,7 @@ export function TrackView({ track, cars, trail, focus, onFocus }: Props) {
           points={`${outline} ${outline.split(' ')[0]}`}
           fill="none"
           strokeWidth="20"
-          stroke="#080d15"
+          stroke="#a7adab"
           strokeLinejoin="round"
         />
         <polyline
@@ -101,14 +101,14 @@ export function TrackView({ track, cars, trail, focus, onFocus }: Props) {
           points={`${outline} ${outline.split(' ')[0]}`}
           fill="none"
           strokeWidth="12"
-          stroke="#334155"
+          stroke="#f5f5ef"
           strokeLinejoin="round"
         />
         <polyline
           points={`${outline} ${outline.split(' ')[0]}`}
           fill="none"
           strokeWidth="1"
-          stroke="#7a8ca3"
+          stroke="#737e7d"
           strokeOpacity="0.6"
           strokeLinejoin="round"
         />

@@ -16,6 +16,7 @@ export function RaceAnalyst({
   replay: ReturnType<typeof useReplay>;
 }) {
   const [configured, setConfigured] = useState(false);
+  const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState('');
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState('');
@@ -67,13 +68,21 @@ export function RaceAnalyst({
   }
   return (
     <section className="panel analyst-panel" aria-label="AI race analyst">
-      <div className="panel-heading">
-        <div>
-          <h2>Ask RaceOS</h2>
-          <p>Ask about the whole recorded session, even while replaying an earlier lap.</p>
-        </div>
-      </div>
-      <div className="analyst-body">
+      <button
+        className="analyst-toggle"
+        type="button"
+        aria-expanded={open}
+        aria-controls="analyst-content"
+        onClick={() => setOpen(!open)}
+      >
+        <span>
+          <small>01 / RACE INTELLIGENCE</small>
+          <strong>Ask RaceOS</strong>
+          <em>Ask about the whole recorded session</em>
+        </span>
+        <b>{open ? '?' : '+'}</b>
+      </button>
+      <div id="analyst-content" className="analyst-body" hidden={!open}>
         {!configured && (
           <p>
             To get started, add your Gemini API key to <code>data/gemini-key.txt</code> in the

@@ -133,8 +133,8 @@ unavailable without stopping replay. Backward seeking restores previous state.
 Open **Race workspace** in the sidebar to use track replay and lap comparison
 together. There is one session selection bar and one replay timeline. The circuit,
 focused driver, timings, and conditions remain above the comparison section.
-Use the track panel's **Lap comparison** link to jump down, or **Back to replay**
-to return. These links preserve playback and the selected session.
+Select **Lap comparison** to open or close the comparison panel. Use **Back to replay**
+to return to the track. Playback and the selected session are preserved.
 
 Advance the shared replay clock until laps have finished, choose a driver and
 completed lap for **A** and **B**, then select **Compare laps**. Compare two

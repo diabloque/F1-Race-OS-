@@ -11,10 +11,12 @@ export function ReplayWorkspace({
   replay,
   sessionName,
   sessionId,
+  onComparison,
 }: {
   replay: ReturnType<typeof useReplay>;
   sessionName?: string;
   sessionId: string;
+  onComparison: () => void;
 }) {
   const { catalog, frame, driverNumber, track } = replay;
   const driver = catalog?.drivers.find((driver) => driver.number === driverNumber),
@@ -43,9 +45,13 @@ export function ReplayWorkspace({
                   ? 'REPLAYING'
                   : 'PAUSED'}
             </span>
-            <a className="secondary-button workspace-shortcut" href="#lap-comparison">
+            <button
+              className="secondary-button workspace-shortcut"
+              type="button"
+              onClick={onComparison}
+            >
               Lap comparison
-            </a>
+            </button>
           </div>
         </div>
         <div className="track-layout">

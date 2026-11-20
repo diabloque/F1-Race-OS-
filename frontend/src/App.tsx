@@ -8,6 +8,7 @@ import { PerformanceAnalysis } from './components/PerformanceAnalysis';
 type Screen = 'replay' | 'sessions';
 export default function App() {
   const [screen, setScreen] = useState<Screen>('replay');
+  const [comparisonOpen, setComparisonOpen] = useState(false);
   const archive = useArchive();
   const replay = useReplay(archive.sessionId, archive.revision);
   const session = archive.sessions.find((session) => session.id === archive.sessionId);
@@ -159,8 +160,35 @@ export default function App() {
                 replay={replay}
                 sessionName={session?.name}
                 sessionId={archive.sessionId}
+                onComparison={() => {
+                  setComparisonOpen(true);
+                  setTimeout(
+                    () =>
+                      document
+                        .getElementById('lap-comparison')
+                        ?.scrollIntoView({ behavior: 'smooth' }),
+                    0,
+                  );
+                }}
               />
-              <PerformanceAnalysis sessionId={archive.sessionId} replay={replay} />
+              <div className="workspace-panel-toggle">
+                <button
+                  type="button"
+                  aria-expanded={comparisonOpen}
+                  aria-controls="comparison-panel"
+                  onClick={() => setComparisonOpen(!comparisonOpen)}
+                >
+                  <span>
+                    <small>02 / PERFORMANCE</small>
+                    <strong>Lap comparison</strong>
+                    <em>Compare timing, inputs and racing lines</em>
+                  </span>
+                  <b>{comparisonOpen ? '?' : '+'}</b>
+                </button>
+              </div>
+              <div id="comparison-panel" hidden={!comparisonOpen}>
+                <PerformanceAnalysis sessionId={archive.sessionId} replay={replay} />
+              </div>
             </>
           )}
           <footer className="page-footer">

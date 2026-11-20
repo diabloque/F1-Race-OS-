@@ -65,9 +65,9 @@ try {
   const navigation = page.getByRole('navigation', { name: 'Workspace navigation' });
   assert.equal(await navigation.getByRole('button').count(), 2);
   assert.equal(await page.getByText('Data quality', { exact: true }).count(), 0);
-  assert.equal(await page.getByRole('button', { name: 'Lap comparison', exact: true }).count(), 0);
+  assert.equal(await page.getByRole('heading', { name: 'Lap comparison', exact: true }).count(), 0);
   assert.equal(await page.getByRole('slider', { name: 'Replay timeline', exact: true }).count(), 1);
-  await page.getByRole('link', { name: 'Lap comparison', exact: true }).click();
+  await page.getByRole('button', { name: 'Lap comparison', exact: true }).click();
   await page.getByRole('heading', { name: 'Lap comparison', exact: true }).waitFor();
   await page.getByRole('heading', { name: 'Race workspace', exact: true }).waitFor();
   await page.getByRole('heading', { name: 'Waiting for the replay clock', exact: true }).waitFor();

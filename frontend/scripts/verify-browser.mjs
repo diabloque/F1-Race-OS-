@@ -650,9 +650,9 @@ try {
     1,
   );
   assert.equal(await page.getByRole('region', { name: 'Track replay', exact: true }).count(), 1);
-  assert.equal(await page.getByRole('region', { name: 'Lap comparison', exact: true }).count(), 1);
+  assert.equal(await page.getByRole('region', { name: 'Lap comparison', exact: true }).count(), 0);
   await page.getByRole('button', { name: 'Play replay', exact: true }).click();
-  await page.getByRole('link', { name: 'Lap comparison', exact: true }).click();
+  await page.getByRole('button', { name: 'Lap comparison', exact: true }).click();
   await page.waitForFunction(
     (before) =>
       Number(document.querySelector('[data-testid="replay-time"]')?.getAttribute('data-seconds')) >
@@ -671,7 +671,7 @@ try {
   checkpoint(
     'Replay and comparison share one workspace, selection bar, and clock; section links preserve playback',
   );
-  await page.getByRole('link', { name: 'Lap comparison', exact: true }).click();
+  await page.getByRole('button', { name: 'Lap comparison', exact: true }).click();
   await page.getByRole('heading', { name: 'Lap comparison', exact: true }).waitFor();
   await page.waitForFunction(() =>
     [...(document.querySelector('select[aria-label="Comparison lap A"]')?.options ?? [])].some(
