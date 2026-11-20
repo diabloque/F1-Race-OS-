@@ -2261,3 +2261,12 @@ body {
     min-height: 230px;
   }
 }
+
+.track-main > .race-timing {
+  margin: 12px 18px 18px;
+}
+@media (max-width: 760px) {
+  .track-main > .race-timing {
+    margin: 10px;
+  }
+}

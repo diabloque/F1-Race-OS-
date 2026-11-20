@@ -104,6 +104,20 @@ export function ReplayWorkspace({
                   : 'Loading recorded state...'}
               </time>
             </div>
+            {sessionName === 'Race' && (
+              <RaceTiming
+                timing={frame?.race_timing}
+                lap={
+                  frame?.drivers.reduce(
+                    (latest, car) =>
+                      Math.max(latest, car.current_lap_number ?? 0, car.last_lap?.lap_number ?? 0),
+                    0,
+                  ) || undefined
+                }
+                focus={driverNumber}
+                onFocus={replay.chooseDriver}
+              />
+            )}
           </div>
           <DriverPanel driver={driver} car={car} at={frame?.at_utc} />
         </div>
@@ -164,20 +178,7 @@ export function ReplayWorkspace({
             )}
           </div>
         </section>
-        {sessionName === 'Race' ? (
-          <RaceTiming
-            timing={frame?.race_timing}
-            lap={
-              frame?.drivers.reduce(
-                (latest, car) =>
-                  Math.max(latest, car.current_lap_number ?? 0, car.last_lap?.lap_number ?? 0),
-                0,
-              ) || undefined
-            }
-            focus={driverNumber}
-            onFocus={replay.chooseDriver}
-          />
-        ) : (
+        {sessionName !== 'Race' && (
           <section className="quality-summary panel">
             <div className="panel-heading">
               <div>
