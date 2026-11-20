@@ -60,13 +60,6 @@ export default function App() {
             Browse sessions <Icon name="arrow" size={16} />
           </button>
         </div>
-        <div className="sidebar-footer">
-          <span className={archive.health ? 'status-dot' : 'status-dot disconnected'} />
-          <div>
-            <strong>{archive.health ? 'Backend connected' : 'Connecting to backend'}</strong>
-            <span>Local workspace - {archive.health?.version ?? 'RaceOS'}</span>
-          </div>
-        </div>
       </aside>
       <main>
         <header className="topbar">

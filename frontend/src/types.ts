@@ -35,8 +35,3 @@ export interface Sample {
   sample_index: number;
   quality_flags: string[];
 }
-export interface Health {
-  status: string;
-  version: string;
-  counts: Record<string, number>;
-}

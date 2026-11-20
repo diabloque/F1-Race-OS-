@@ -165,24 +165,6 @@ a {
   font-size: 11px;
   color: #d0d8e4;
 }
-.sidebar-footer {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 22px 10px;
-  border-top: 1px solid #24303d;
-}
-.sidebar-footer strong {
-  display: block;
-  font-size: 10px;
-  font-weight: 500;
-}
-.sidebar-footer span:not(.status-dot) {
-  display: block;
-  margin-top: 6px;
-  font-size: 9px;
-  color: #6f7e94;
-}
 .status-dot {
   display: inline-block;
   width: 6px;
@@ -194,9 +176,6 @@ a {
 }
 .status-dot.warning {
   background: #ffc375;
-}
-.status-dot.disconnected {
-  background: #738197;
 }
 main {
   margin-left: 224px;
@@ -661,8 +640,7 @@ h2 {
   }
   .brand small,
   .workspace-label,
-  .sidebar-archive,
-  .sidebar-footer {
+  .sidebar-archive {
     display: none;
   }
   .sidebar nav {

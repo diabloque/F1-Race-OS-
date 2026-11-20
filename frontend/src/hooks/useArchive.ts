@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { request } from '../api';
-import type { Health, Session } from '../types';
+import type { Session } from '../types';
 export function useArchive() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [sessionId, setSessionId] = useState('');
-  const [health, setHealth] = useState<Health | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [revision, setRevision] = useState(0);
@@ -12,16 +11,11 @@ export function useArchive() {
     const controller = new AbortController();
     setLoading(true);
     setError('');
-    Promise.all([
-      request<{ items: Session[] }>('/api/library', controller.signal).then(
-        (result) => result.items,
-      ),
-      request<Health>('/api/health', controller.signal),
-    ])
-      .then(([records, status]) => {
+    request<{ items: Session[] }>('/api/library', controller.signal)
+      .then((result) => {
         if (controller.signal.aborted) return;
+        const records = result.items;
         setSessions(records);
-        setHealth(status);
         setSessionId((previous) => {
           if (records.some((item) => item.id === previous)) return previous;
           const latestRace = [...records].reverse().find((item) => item.name === 'Race');
@@ -31,7 +25,6 @@ export function useArchive() {
       .catch((error) => {
         if (!controller.signal.aborted) {
           setError(error.message);
-          setHealth(null);
         }
       })
       .finally(() => {
@@ -48,7 +41,6 @@ export function useArchive() {
     sessions,
     sessionId,
     setSessionId,
-    health,
     error,
     loading,
     revision,
