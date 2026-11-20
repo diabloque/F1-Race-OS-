@@ -63,22 +63,6 @@ export default function App() {
         </div>
       </aside>
       <main>
-        <header className="topbar">
-          <div>
-            <span>Workspace</span>
-            <Icon name="chevron" size={13} />
-            <strong>{title}</strong>
-          </div>
-          <div className="topbar-right">
-            <span className="archive-badge">
-              <span className="status-dot" />
-              HISTORICAL REPLAY
-            </span>
-            <a href="/docs" target="_blank" rel="noreferrer" className="api-link">
-              API docs
-            </a>
-          </div>
-        </header>
         <div className="page-content">
           <div className="page-title">
             <div>
