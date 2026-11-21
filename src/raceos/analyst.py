@@ -10,6 +10,8 @@ from raceos.engineering import environment
 
 KEY_FILE = Path(__file__).resolve().parents[2] / "data" / "gemini-key.txt"
 MODEL = os.environ.get("RACEOS_GEMINI_MODEL", "gemini-3.5-flash-lite")
+MAX_TOOL_ROUNDS = 5
+MAX_CALLS_PER_ROUND = 4
 TOOLS = [
     {
         "type": "function",
@@ -149,7 +151,8 @@ def ask(provider, remote, analysis, sid, at, driver, question, send=None):
     evidence = []
     truststore.inject_into_ssl()
     send = send or requests.post
-    for turn in range(5):
+    # Gemini can request RaceOS data, then use the results to answer.
+    for turn in range(MAX_TOOL_ROUNDS):
         payload = {
             "model": MODEL,
             "store": False,
@@ -210,7 +213,7 @@ def ask(provider, remote, analysis, sid, at, driver, question, send=None):
                 "at_utc": at.isoformat(),
                 "scope": "full_session",
             }
-        if len(calls) > 4:
+        if len(calls) > MAX_CALLS_PER_ROUND:
             raise DataError(
                 "The analyst requested too many data checks. Try a narrower question."
             )
@@ -220,6 +223,7 @@ def ask(provider, remote, analysis, sid, at, driver, question, send=None):
             try:
                 if not isinstance(args, dict):
                     raise ValueError("Invalid tool arguments.")
+                # Only these named, read-only tools can access session data.
                 if name == "completed_laps":
                     data = analysis.choices(sid, at)
                 elif name == "compare_laps":
@@ -264,6 +268,7 @@ def ask(provider, remote, analysis, sid, at, driver, question, send=None):
                 output = data
             except (DataError, ValueError, KeyError) as error:
                 output = {"error": str(error)}
+            # Give Gemini the result and keep the matching call ID.
             history.append(
                 {
                     "type": "function_result",

@@ -161,9 +161,9 @@ class RemoteReplay:
             n = driver["number"]
             current, completed, best = states[n]
             values = samples.get(n, [])
-            index = (
-                bisect_right([sample["timestamp_utc"] for sample in values], clock) - 1
-            )
+            # Find the latest sample at or before the shared replay clock.
+            sample_times = [sample["timestamp_utc"] for sample in values]
+            index = bisect_right(sample_times, clock) - 1
             latest = values[index] if index >= 0 else None
             age = (
                 (at - utc_datetime(latest["timestamp_utc"])).total_seconds()

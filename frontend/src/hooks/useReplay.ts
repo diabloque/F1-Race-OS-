@@ -2,6 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { request } from '../api';
 import { advanceTime, clampTime } from '../replay';
 import type { ReplayCatalog, ReplayFrame, Track } from '../replay';
+
+const BUFFER_DELAY_MS = 400;
+const FRAME_INTERVAL_MS = 150;
+
+// Convert replay seconds into the UTC time expected by the backend.
+function replayTimestamp(startUtc: string, seconds: number): string {
+  return new Date(Date.parse(startUtc) + seconds * 1000).toISOString();
+}
 export function useReplay(sessionId: string, revision: number) {
   const [catalog, setCatalog] = useState<ReplayCatalog | null>(null);
   const [track, setTrack] = useState<Track | null>(null);
@@ -66,11 +74,11 @@ export function useReplay(sessionId: string, revision: number) {
         const realSeconds = (performance.now() - started - bufferedMs) / 1000;
         seconds = advanceTime(anchor, realSeconds, speed, metadata.duration_s);
       }
-      const at = new Date(Date.parse(metadata.start_utc) + seconds * 1000).toISOString();
+      const at = replayTimestamp(metadata.start_utc, seconds);
       const requested = performance.now();
       const buffering = setTimeout(() => {
         if (!controller.signal.aborted) setLoading(true);
-      }, 400);
+      }, BUFFER_DELAY_MS);
       try {
         const result = await request<ReplayFrame>(
           `/api/sessions/${encodeURIComponent(sessionId)}/replay/frame?at=${encodeURIComponent(at)}&driver_number=${driverNumber}`,
@@ -78,14 +86,15 @@ export function useReplay(sessionId: string, revision: number) {
         );
         if (controller.signal.aborted) return;
         const waited = performance.now() - requested;
-        if (waited > 400) bufferedMs += waited;
+        // Long downloads pause the virtual clock instead of skipping ahead.
+        if (waited > BUFFER_DELAY_MS) bufferedMs += waited;
         clock.current = result.elapsed_s;
         setElapsed(result.elapsed_s);
         setFrame(result);
         setError('');
         setLoading(false);
         if (seconds >= metadata.duration_s) setPlaying(false);
-        else if (playing) timer = setTimeout(tick, 150);
+        else if (playing) timer = setTimeout(tick, FRAME_INTERVAL_MS);
       } catch (error) {
         if (!controller.signal.aborted) {
           setError((error as Error).message);
