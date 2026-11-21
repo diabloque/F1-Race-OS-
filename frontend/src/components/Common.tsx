@@ -5,7 +5,6 @@ const iconPaths = {
   sessions: 'M4 5h16v14H4z M4 9h16 M8 3v4 M16 3v4',
   refresh: 'M20 8a8 8 0 1 0 1 7 M20 3v5h-5',
   arrow: 'M5 12h14 M14 7l5 5-5 5',
-  chevron: 'm8 5 7 7-7 7',
 };
 
 type IconName = keyof typeof iconPaths;
