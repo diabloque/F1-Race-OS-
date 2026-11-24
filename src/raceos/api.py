@@ -21,6 +21,7 @@ from raceos.remote_cache import RemoteUnavailable
 from raceos.remote_replay import RemoteReplay
 from raceos.analysis import PerformanceAnalysis, LapComparison
 from raceos import analyst
+from raceos.strategy import pace_by_stint
 
 Item = TypeVar("Item")
 
@@ -165,6 +166,25 @@ def create_app(
             request.at,
             request.driver_number,
             request.question.strip(),
+        )
+
+    @application.get("/api/sessions/{session_id}/strategy/pace", tags=["Strategy"])
+    def strategy_pace(
+        session_id: str,
+        driver_number: Annotated[int, Query(gt=0)],
+        fuel_start: Annotated[float, Query(ge=0, le=200)] = 100,
+        fuel_burn: Annotated[float, Query(ge=0, le=10)] = 1.7,
+        fuel_effect: Annotated[float, Query(ge=0, le=0.1)] = 0.03,
+    ):
+        if not session_id.startswith("ti-"):
+            raise DataError("Open a remote race session for strategy analysis.")
+        session = provider.get(session_id)
+        if session["name"] != "Race":
+            raise DataError("Pace degradation requires a race session.")
+        if driver_number not in session["laps"]:
+            raise NotFound("Driver not found in this session.")
+        return pace_by_stint(
+            session["laps"][driver_number], fuel_start, fuel_burn, fuel_effect
         )
 
     @application.get("/api/library", tags=["Remote data"])

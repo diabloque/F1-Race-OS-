@@ -63,6 +63,16 @@ Italian Grand Prix qualifying. Use Play/Pause, 0.25x-16x speed, ten-second steps
 lap jumps, or the timeline.
 Select any car or use the Driver menu to follow its inputs.
 
+## Strategy Lab
+
+Open Strategy Lab in the race workspace to explore fuel-corrected stint pace and
+educational tyre temperature, pressure/load and pit-stop scenarios. Pace uses
+the selected driver's full race lap and tyre metadata from the on-demand source;
+the other tools use editable assumptions. Fuel mass, tyre temperatures, pressure,
+downforce, grip and contact patch are not measured by these models. Results are
+illustrations, not real team strategy or proof of tyre wear. The analysis may be
+limited by missing laps, traffic, safety cars, weather and prepared source data.
+
 ## Storage
 
 - New downloaded JSON is compressed under `data/remote/cache`.

@@ -5,10 +5,12 @@ import { Blank, Icon } from './components/Common';
 import { SessionControls } from './components/SessionControls';
 import { ReplayWorkspace } from './components/ReplayWorkspace';
 import { PerformanceAnalysis } from './components/PerformanceAnalysis';
+import { StrategyLab } from './components/StrategyLab';
 type Screen = 'replay' | 'sessions';
 export default function App() {
   const [screen, setScreen] = useState<Screen>('replay');
   const [comparisonOpen, setComparisonOpen] = useState(false);
+  const [strategyOpen, setStrategyOpen] = useState(false);
   const archive = useArchive();
   const replay = useReplay(archive.sessionId, archive.revision);
   const session = archive.sessions.find((session) => session.id === archive.sessionId);
@@ -172,6 +174,30 @@ export default function App() {
               </div>
               <div id="comparison-panel" hidden={!comparisonOpen}>
                 <PerformanceAnalysis sessionId={archive.sessionId} replay={replay} />
+              </div>
+              <div className="workspace-panel-toggle">
+                <button
+                  type="button"
+                  aria-expanded={strategyOpen}
+                  aria-controls="strategy-panel"
+                  onClick={() => setStrategyOpen(!strategyOpen)}
+                >
+                  <span>
+                    <small>03 / STRATEGY</small>
+                    <strong>Strategy Lab</strong>
+                    <em>Explore pace and test tyre and pit scenarios</em>
+                  </span>
+                  <b>{strategyOpen ? '−' : '+'}</b>
+                </button>
+              </div>
+              <div id="strategy-panel" hidden={!strategyOpen}>
+                {strategyOpen && (
+                  <StrategyLab
+                    sessionId={archive.sessionId}
+                    sessionName={session?.name}
+                    replay={replay}
+                  />
+                )}
               </div>
             </>
           )}
