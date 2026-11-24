@@ -19,3 +19,11 @@ node_modules/
 
 # Local project guides and screenshots
 /docs/
+
+# Local development checks and version hints
+/tests/
+/frontend/tests/
+/frontend/scripts/
+/.github/workflows/
+/.node-version
+/.python-version

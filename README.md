@@ -194,26 +194,11 @@ Legacy FastF1 archive IDs and read APIs continue to work with source `fastf1`.
 Legacy `raceos ingest`, `import`, and `prepare-replay` commands are still available
 for reference work. They are not the dashboard's remote loading path.
 
-## Edit and verify
+## Development
 
-```powershell
-npm --prefix frontend run dev
-.\.venv\Scripts\python.exe -m pytest -q
-npm --prefix frontend test
-npm --prefix frontend run build
-npm --prefix frontend run test:smoke
-```
-
-Vite development serves at http://127.0.0.1:5173 and proxies the backend on port 8000. Browser checks use installed headless Edge and a temporary server on a free
-port with an isolated empty archive and no remote-data dependency. Optional
-`npm --prefix frontend run test:browser` runs the larger real-data scenarios;
-it opens the required Monza sessions if they are not saved yet and needs
-internet for uncached data. It saves screenshots/evidence under
-`data/remote-replay-*`.
-Black and Prettier are the development formatters. All new code uses ordinary
-Python functions/classes, HTTP JSON requests, and React components. TypeScript also rejects unused local variables and parameters. The adapter
-reads TracingInsights files directly, so installing the larger tif1 package is
-unnecessary.
+Run `npm --prefix frontend run dev` to start the Vite development server at
+http://127.0.0.1:5173. It connects to the backend on port 8000. Use
+`npm --prefix frontend run build` to build the dashboard after making changes.
 
 References: [TracingInsights datasets](https://github.com/TracingInsights/2026),
 [tif1 approach](https://github.com/TracingInsights/tif1),
