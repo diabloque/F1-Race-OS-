@@ -40,10 +40,7 @@ RaceOS works without one.
 2. Create `data/gemini-key.txt` in the project folder and paste your key into it.
 3. Save the file and refresh the app.
 
-The key file is ignored by Git; never commit or share your key. Alternatively,
-set `GEMINI_API_KEY` before starting the server. Gemini receives your question
-and selected session data; the free tier has usage limits. Set
-`RACEOS_GEMINI_MODEL` to choose a model available to your key.
+Keep your API key private. RaceOS sends your question and relevant session data to Gemini. Free keys have usage limits.
 
 ## Open a session
 
